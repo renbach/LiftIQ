@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { theme } from "./theme.js";
-import { useIsDesktop } from "./lib/useViewport.js";
+import { useIsDesktop, useIsUltrawide } from "./lib/useViewport.js";
 import MediaTagger from "./components/MediaTagger.jsx";
 
 const TABS = [
@@ -11,6 +11,7 @@ const TABS = [
 export default function App() {
   const [tab, setTab] = useState("media");
   const isDesktop = useIsDesktop();
+  const isUltrawide = useIsUltrawide();
 
   return (
     <div style={{
@@ -18,7 +19,7 @@ export default function App() {
       background: theme.bg,
       color: theme.text,
       fontFamily: "'IBM Plex Sans', -apple-system, sans-serif",
-      maxWidth: isDesktop ? 1280 : 540,
+      maxWidth: isUltrawide ? 1920 : isDesktop ? 1280 : 540,
       margin: "0 auto",
       display: "flex",
       flexDirection: "column",
@@ -111,7 +112,7 @@ export default function App() {
 
       {/* Content */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        {tab === "media" && <MediaTagger isDesktop={isDesktop} />}
+        {tab === "media" && <MediaTagger isDesktop={isDesktop} isUltrawide={isUltrawide} />}
         {tab === "diagnostics" && (
           <div style={{
             flex: 1, display: "flex", alignItems: "center",

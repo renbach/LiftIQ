@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
 
-export function useIsDesktop(breakpoint = 900) {
-  const [isDesktop, setIsDesktop] = useState(() => {
+function useMinWidth(minWidth) {
+  const [matches, setMatches] = useState(() => {
     if (typeof window === "undefined") return false;
-    return window.innerWidth >= breakpoint;
+    return window.innerWidth >= minWidth;
   });
   useEffect(() => {
-    const onResize = () => setIsDesktop(window.innerWidth >= breakpoint);
+    const onResize = () => setMatches(window.innerWidth >= minWidth);
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [breakpoint]);
-  return isDesktop;
+  }, [minWidth]);
+  return matches;
 }
+
+export const useIsDesktop = (breakpoint = 900) => useMinWidth(breakpoint);
+export const useIsUltrawide = (breakpoint = 1600) => useMinWidth(breakpoint);

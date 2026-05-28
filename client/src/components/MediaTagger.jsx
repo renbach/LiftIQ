@@ -3,7 +3,7 @@ import { theme } from "../theme.js";
 import { KINDS, BRANDS, SYSTEMS, FAILURE_TYPES } from "../data/taxonomy.js";
 import { fetchMedia, uploadMedia, updateMedia, deleteMedia } from "../lib/api.js";
 
-export default function MediaTagger({ isDesktop = false }) {
+export default function MediaTagger({ isDesktop = false, isUltrawide = false }) {
   const [view, setView] = useState("library");
   const [items, setItems] = useState([]);
   const [stats, setStats] = useState({ total: 0, tagged: 0, withParts: 0 });
@@ -438,7 +438,7 @@ export default function MediaTagger({ isDesktop = false }) {
         >
           <div style={{
             background: theme.bg, width: "100%",
-            maxWidth: isDesktop ? 980 : 540,
+            maxWidth: isUltrawide ? 1280 : isDesktop ? 980 : 540,
             maxHeight: isDesktop ? "calc(100vh - 48px)" : "100%",
             display: "flex", flexDirection: "column",
             border: `1px solid ${theme.border}`,
@@ -472,7 +472,7 @@ export default function MediaTagger({ isDesktop = false }) {
               flex: 1, overflowY: "auto",
               padding: isDesktop ? 0 : 16,
               display: isDesktop ? "grid" : "block",
-              gridTemplateColumns: isDesktop ? "minmax(0, 1fr) 360px" : undefined,
+              gridTemplateColumns: isDesktop ? `minmax(0, 1fr) ${isUltrawide ? 420 : 360}px` : undefined,
               gap: 0,
             }}>
               <div style={{
