@@ -1,3 +1,10 @@
+export const KINDS = [
+  { value: "forklift", label: "Forklift" },
+  { value: "tool", label: "Tool" },
+  { value: "reference", label: "Reference" },
+  { value: "other", label: "Other" },
+];
+
 export const BRANDS = {
   "Toyota": [
     "8FGCU25", "8FGCU30", "8FBE15", "8FBE20", "7FGCU25",

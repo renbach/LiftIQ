@@ -14,7 +14,7 @@ export function mediaRoutes(storage) {
       if (!req.file) return res.status(400).json({ error: "No image provided" });
 
       const id = uuid();
-      const { brand, model, system, component, failure_type, part_number, hours, notes } = req.body;
+      const { kind, brand, model, system, component, failure_type, part_number, hours, notes } = req.body;
 
       const image = sharp(req.file.buffer).rotate();
       const fullImage = await image.clone().resize(1600, 1600, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 85 }).toBuffer();
@@ -25,12 +25,12 @@ export function mediaRoutes(storage) {
         storage.save(id, thumbnail, "thumb"),
       ]);
 
-      const tagged = brand && system ? 1 : 0;
+      const tagged = computeTagged(kind, brand, system);
 
       run(
-        `INSERT INTO media (id, filename, original_name, brand, model, system, component, failure_type, part_number, hours, notes, tagged)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, `${id}.jpg`, req.file.originalname, brand || null, model || null, system || null, component || null, failure_type || null, part_number || null, hours || null, notes || null, tagged]
+        `INSERT INTO media (id, filename, original_name, kind, brand, model, system, component, failure_type, part_number, hours, notes, tagged)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, `${id}.jpg`, req.file.originalname, kind || null, brand || null, model || null, system || null, component || null, failure_type || null, part_number || null, hours || null, notes || null, tagged]
       );
 
       const row = get("SELECT * FROM media WHERE id = ?", [id]);
@@ -42,10 +42,12 @@ export function mediaRoutes(storage) {
   });
 
   router.get("/", (req, res) => {
-    const { brand, model, system, failure_type, q, limit = "50", offset = "0" } = req.query;
+    const { kind, brand, model, system, failure_type, q, limit = "50", offset = "0" } = req.query;
     let sql = "SELECT * FROM media WHERE 1=1";
     const params = [];
 
+    if (kind === "unsorted") { sql += " AND kind IS NULL"; }
+    else if (kind) { sql += " AND kind = ?"; params.push(kind); }
     if (brand) { sql += " AND brand = ?"; params.push(brand); }
     if (model) { sql += " AND model = ?"; params.push(model); }
     if (system) { sql += " AND system = ?"; params.push(system); }
@@ -65,12 +67,16 @@ export function mediaRoutes(storage) {
     const taggedRow = get("SELECT COUNT(*) as count FROM media WHERE tagged = 1", []);
     const partsRow = get("SELECT COUNT(*) as count FROM media WHERE part_number IS NOT NULL AND part_number != ''", []);
 
+    const kindCounts = all("SELECT COALESCE(kind, 'unsorted') as kind, COUNT(*) as count FROM media GROUP BY kind", []);
+    const byKind = Object.fromEntries(kindCounts.map((r) => [r.kind, r.count]));
+
     res.json({
       items: rows.map(formatRow),
       stats: {
         total: totalRow?.count || 0,
         tagged: taggedRow?.count || 0,
         withParts: partsRow?.count || 0,
+        byKind,
       },
     });
   });
@@ -85,7 +91,7 @@ export function mediaRoutes(storage) {
     const row = get("SELECT * FROM media WHERE id = ?", [req.params.id]);
     if (!row) return res.status(404).json({ error: "Not found" });
 
-    const fields = ["brand", "model", "system", "component", "failure_type", "part_number", "hours", "notes"];
+    const fields = ["kind", "brand", "model", "system", "component", "failure_type", "part_number", "hours", "notes"];
     const updates = [];
     const params = [];
 
@@ -98,10 +104,11 @@ export function mediaRoutes(storage) {
 
     if (updates.length === 0) return res.json(formatRow(row));
 
+    const newKind = req.body.kind !== undefined ? req.body.kind : row.kind;
     const newBrand = req.body.brand !== undefined ? req.body.brand : row.brand;
     const newSystem = req.body.system !== undefined ? req.body.system : row.system;
     updates.push("tagged = ?");
-    params.push(newBrand && newSystem ? 1 : 0);
+    params.push(computeTagged(newKind, newBrand, newSystem));
     updates.push("updated_at = datetime('now')");
 
     params.push(req.params.id);
@@ -145,6 +152,7 @@ function formatRow(row) {
   return {
     id: row.id,
     originalName: row.original_name,
+    kind: row.kind || "",
     brand: row.brand || "",
     model: row.model || "",
     system: row.system || "",
@@ -159,4 +167,10 @@ function formatRow(row) {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+function computeTagged(kind, brand, system) {
+  if (!kind) return 0;
+  if (kind === "forklift") return brand && system ? 1 : 0;
+  return 1; // tool / reference / other: kind alone is enough
 }

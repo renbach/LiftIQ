@@ -7,3 +7,7 @@ server/storage/thumbs/*
 !server/storage/images/.gitkeep
 !server/storage/thumbs/.gitkeep
 .DS_Store
+dataset/
+imports/
+*.zip
+

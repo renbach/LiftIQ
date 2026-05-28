@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "import": "node src/scripts/bulk-import.js"
   },
   "dependencies": {
     "sql.js": "^1.12.0",

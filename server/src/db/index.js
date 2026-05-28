@@ -24,6 +24,7 @@ export async function getDb(filePath) {
       id TEXT PRIMARY KEY,
       filename TEXT NOT NULL,
       original_name TEXT,
+      kind TEXT,
       brand TEXT,
       model TEXT,
       system TEXT,
@@ -38,6 +39,17 @@ export async function getDb(filePath) {
     )
   `);
 
+  // Migration: add `kind` column to existing DBs that pre-date it
+  const cols = [];
+  const colStmt = db.prepare("PRAGMA table_info(media)");
+  while (colStmt.step()) {
+    cols.push(colStmt.getAsObject().name);
+  }
+  colStmt.free();
+  if (!cols.includes("kind")) {
+    db.run("ALTER TABLE media ADD COLUMN kind TEXT");
+  }
+
   persist();
   return db;
 }
@@ -51,6 +63,10 @@ export function persist() {
 export function run(sql, params = []) {
   db.run(sql, params);
   persist();
+}
+
+export function runNoPersist(sql, params = []) {
+  db.run(sql, params);
 }
 
 export function get(sql, params = []) {

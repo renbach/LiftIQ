@@ -2,6 +2,7 @@ const BASE = "/api/media";
 
 export async function fetchMedia(filters = {}) {
   const params = new URLSearchParams();
+  if (filters.kind) params.set("kind", filters.kind);
   if (filters.brand) params.set("brand", filters.brand);
   if (filters.system) params.set("system", filters.system);
   if (filters.q) params.set("q", filters.q);
