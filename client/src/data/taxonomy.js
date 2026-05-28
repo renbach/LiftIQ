@@ -26,6 +26,18 @@ export const BRANDS = {
     "SC4500", "SC5300", "SC6000", "FC5200", "C-5",
     "RR5700", "RM6000", "RC5500", "SP3500", "PE4500",
   ],
+  "Hangcha": [
+    "CPCD25", "CPCD30", "CPCD35", "CPYD25", "CPYD30",
+    "CPD15", "CPD20", "CPD25", "XF25", "XF30",
+  ],
+  "Doosan": [
+    "GC25E", "GC30E", "D25S", "D30S", "D35C",
+    "B16X", "B20X", "B25X", "BR16JW", "PB45T",
+  ],
+  "Clark": [
+    "C25", "C30", "C35", "CGC25", "CGP25",
+    "GTX25", "ECX20", "ECX25", "WPX45", "NPX17",
+  ],
 };
 
 export const SYSTEMS = [
@@ -61,6 +73,9 @@ export const DIAGNOSTIC_BRANDS = {
   mitsubishi_unicarrier: { name: "Mitsubishi / Unicarrier", models: BRANDS["Mitsubishi / Unicarrier"], icon: "●" },
   heli: { name: "Heli", models: BRANDS["Heli"], icon: "■" },
   crown: { name: "Crown", models: BRANDS["Crown"], icon: "♛" },
+  hangcha: { name: "Hangcha", models: BRANDS["Hangcha"], icon: "▽" },
+  doosan: { name: "Doosan", models: BRANDS["Doosan"], icon: "◇" },
+  clark: { name: "Clark", models: BRANDS["Clark"], icon: "✦" },
 };
 
 export const SYMPTOM_CATEGORIES = [
@@ -699,6 +714,375 @@ export const DIAGNOSTIC_DATA = {
         { q: "Whine during lift only on RR?", yes: "Lift pump motor bearing — wear amplified under load", no: "Mast-side noise" },
         { q: "Clicking accompanying jerky lift on RR?", yes: "Mast load wheel flat spots — inspect and replace wheels", no: "Different mast fault" },
         { q: "FC5200 IC with cold-start rattle that goes away warm?", yes: "Timing chain tensioner — GM 2.4L wear, same as other IC trucks", no: "Not timing chain" },
+      ],
+    },
+  },
+
+  hangcha: {
+    no_start: {
+      tendencies: [
+        "LPG lockoff solenoid failure on CPYD — clicks but no fuel, especially after weeks of sitting.",
+        "Xinchai engine ignition coil weakness on CPCD — hard start when hot, fine cold.",
+        "Seat switch wiring chafe on CPCD25/30 — wire passes a sharp edge under the seat pan on early units.",
+        "ECU connector corrosion on XF-series — newer line but rear-mounted ECU collects moisture.",
+        "Main battery isolator switch internal corrosion on CPD — appears dead, full battery voltage at terminals.",
+      ],
+      questions: [
+        { q: "Does the dash light up with key on?", yes: "Crank or fuel side", no: "Isolator switch, key barrel, or main fuse — common Hangcha CPD lockout" },
+        { q: "Is this an LPG truck that sat for a week+?", yes: "Lockoff solenoid stuck closed — Hangcha CPYD known after-storage failure", no: "Different no-start path" },
+        { q: "Does it crank but only refuse to start hot?", yes: "Coil weakness on Xinchai engines — Hangcha CPCD common", no: "Cold-start path — fuel, glow plugs, or compression" },
+        { q: "Is the OPS / seat light on with operator seated?", yes: "Seat switch wire chafe — CPCD25/30 specific routing flaw", no: "Not interlock" },
+      ],
+    },
+    steering: {
+      tendencies: [
+        "BZZ orbital wear on CPCD — Hangcha uses a generic Chinese-sourced BZZ that wears faster than Toyota/Yale equivalents.",
+        "Steering cylinder rod pitting on CPYD — chrome layer thin on OEM cylinders.",
+        "Tie rod ball joint play on CPCD25/30 — manifests as wander before clunk.",
+        "Hydraulic priority valve sticking under cold start — XF-series specifically.",
+        "Steering column lower bushing wear on high-hour CPD — notchy feel at center.",
+      ],
+      questions: [
+        { q: "Is the steering wheel free-wheeling without tire response?", yes: "BZZ orbital internal wear — Hangcha known faster wear than Toyota", no: "Hydraulic supply or mechanical" },
+        { q: "Visible oil on the steer cylinder rod?", yes: "Cylinder rod pitting and seal damage — CPYD common", no: "External cylinder fine — internal issue" },
+        { q: "Does steering wander on a straight line?", yes: "Tie rod ball joints — CPCD25/30 wear, easy to miss", no: "Different mechanical or hydraulic" },
+        { q: "XF-series with heavy steering only on cold morning starts?", yes: "Priority valve sticking cold — XF-series spool issue, warms out", no: "Persistent issue — not cold-specific" },
+      ],
+    },
+    mast_hydraulic: {
+      tendencies: [
+        "Tilt cylinder seal failure on CPCD30/35 — mast creep, similar to Heli but earlier hour failure.",
+        "Lift cylinder packing wear on CPYD25/30 — slow drift under load.",
+        "Chain anchor pin retainer clip loss on CPCD — chain anchor migrates, fork height shifts.",
+        "Hydraulic control valve detent ball wear — lever drifts toward neutral.",
+        "Mast roller wear on XF-series — Hangcha factory grease intervals optimistic for dirty environments.",
+      ],
+      questions: [
+        { q: "Does the load drift down slowly when held?", yes: "Lift cylinder packing — CPYD wear, often around 4000 hours", no: "Mast travel or noise issue" },
+        { q: "Mast tilts forward under load on its own?", yes: "Tilt cylinder seals — CPCD30/35 common wear point", no: "Tilt valve centering check" },
+        { q: "Forks at different heights after weeks?", yes: "Chain anchor pin retainer missing — CPCD inspection item", no: "Chain stretch or other wear" },
+        { q: "Mast jerky or rough mid-travel?", yes: "Roller condition — XF-series benefits from doubled grease frequency", no: "Hydraulic flow or valve" },
+      ],
+    },
+    brakes: {
+      tendencies: [
+        "Master cylinder bypass on CPCD — pedal slowly sinks, common Hangcha-sourced MC wear.",
+        "Parking brake cable seizing on CPYD operating in damp environments.",
+        "Wheel cylinder leak on older CPCD — external brake fluid at rear wheels.",
+        "Brake fluid contamination from moisture — Hangcha spec is sensitive, change interval often skipped.",
+        "Brake shoe glaze on CPD electrics from light usage patterns — squealing without effective braking.",
+      ],
+      questions: [
+        { q: "Pedal slowly sinks when held?", yes: "Master cylinder internal bypass — CPCD common, similar to Heli", no: "External or shoe issue" },
+        { q: "Parking brake won't release cleanly?", yes: "Cable seized — CPYD in damp environments, lubricate cable run", no: "Mechanism or shoe issue" },
+        { q: "Fluid weeping at rear wheels?", yes: "Wheel cylinder failure — older CPCD seal kits readily available", no: "System-wide hydraulic" },
+        { q: "Brakes squeal but don't grab well?", yes: "Shoe glaze — CPD electric light-duty pattern, deglaze or replace", no: "Other contamination or wear" },
+      ],
+    },
+    transmission: {
+      tendencies: [
+        "Powershift clutch pack wear on CPCD30/35 — harsh engagement when warm.",
+        "Directional solenoid intermittent on CPCD — coil resistance drift in heat.",
+        "Torque converter input bearing whine on high-hour CPCD30 — preceeds harder failure.",
+        "Inching valve cable adjustment drift on CPYD — poor creep modulation.",
+        "Transmission oil cooler restriction on CPCD operating in dusty environments.",
+      ],
+      questions: [
+        { q: "Engagement harsh especially when warm?", yes: "Clutch pack wear on CPCD30/35 — common Hangcha powershift issue", no: "Cold-only engagement issue is different" },
+        { q: "F or R intermittently lost?", yes: "Directional solenoid coil drift — test cold vs warm resistance", no: "Mechanical or pressure side" },
+        { q: "Whine from trans area worsening?", yes: "Torque converter input bearing — CPCD30 wear, schedule rebuild", no: "Pump or other source" },
+        { q: "Trans overheats during sustained work?", yes: "Cooler restriction — clean Hangcha cooler core, runs smaller than Japanese", no: "Internal — pressure test" },
+      ],
+    },
+    electrical: {
+      tendencies: [
+        "ECU rear-mount water intrusion on XF-series — Hangcha rear ECU placement collects rain/wash spray.",
+        "Wiring harness UV degradation on CPCD operating outdoors — insulation cracks at 5+ years.",
+        "Instrument cluster backlight failure on CPCD — common dropout, hard to read at night.",
+        "Fuse box corrosion on CPD electrics — sealing improved in XF-series but older units affected.",
+        "Battery charge connector wear on CPD — high-current connector pins overheat from light arcing.",
+      ],
+      questions: [
+        { q: "Is this an XF-series with intermittent ECU codes?", yes: "Rear ECU water intrusion — Hangcha XF design weakness, reseal connector", no: "Different fault location" },
+        { q: "Wire insulation cracking on outdoor-stored truck?", yes: "UV degradation — common Hangcha CPCD after 5 years sun exposure", no: "Different harness issue" },
+        { q: "Dash readable in daylight but not at night?", yes: "Cluster backlight failure — Hangcha CPCD common, full cluster swap usually", no: "Not backlight" },
+        { q: "Battery charge connector hot to the touch?", yes: "Connector pin arcing — CPD known wear, replace before damage spreads", no: "Other electrical heat source" },
+      ],
+    },
+    overheating: {
+      tendencies: [
+        "Small radiator core on CPCD — Hangcha cores even smaller than Heli, clog very fast.",
+        "Thermostat stuck closed on Xinchai engines — rapid overheat under any load.",
+        "Water pump bearing wear on Xinchai 490 — squeal precedes overheat by weeks.",
+        "Coolant overflow tank cap weak — releases too early, system loses coolant on heat cycles.",
+        "Fan belt slip on CPCD diesels — belt quality variable on OEM replacement.",
+      ],
+      questions: [
+        { q: "How fast does overheat happen?", yes: "Within minutes = thermostat stuck closed or severe core clog", no: "Gradual — flow or capacity" },
+        { q: "Radiator core visibly packed with debris?", yes: "Clean core — Hangcha CPCD core extra small, frequent cleaning critical", no: "Internal flow issue" },
+        { q: "Squeal from water pump area?", yes: "Water pump bearing — Xinchai 490, replace before failure cascades", no: "Other component" },
+        { q: "Coolant level dropping slowly with no leak visible?", yes: "Overflow cap releasing pressure too early — replace cap first, cheap fix", no: "Internal leak — head gasket check" },
+      ],
+    },
+    noise: {
+      tendencies: [
+        "Xinchai injector tick on CPCD — wears with hours, becomes pronounced.",
+        "Hydraulic pump whine on cold morning starts — aerated oil common in cold storage.",
+        "Drive axle bearing growl on CPCD30 — worsens under turning load.",
+        "Mast chain slap on CPCD — Hangcha chain tension spec is on the loose side; verify.",
+        "Exhaust flex pipe rattle on CPYD — fatigue cracks at the flex section.",
+      ],
+      questions: [
+        { q: "Ticking that follows engine RPM?", yes: "Injector wear (Xinchai) or exhaust manifold gasket", no: "Not engine-driven" },
+        { q: "Whine during lift, especially cold?", yes: "Hydraulic pump cavitation cold — Hangcha cold weather behavior, warms out", no: "Persistent whine — bearing or pump failure" },
+        { q: "Growl under turning load?", yes: "Drive axle bearing — CPCD30 wear point", no: "Other drivetrain source" },
+        { q: "Mast chain rattle at rest height?", yes: "Chain tension on the loose side per Hangcha spec — retension by gauge", no: "Mast wheel or guide noise" },
+      ],
+    },
+  },
+
+  doosan: {
+    no_start: {
+      tendencies: [
+        "G424F LPG engine: lockoff solenoid clicks but doesn't open after long sit — Doosan GC25E/GC30E common.",
+        "D24NAP diesel: fuel pump priming weakness — long crank to start, fine once running.",
+        "Operator presence relay failure on B-series electrics — clicks audibly but truck won't power up.",
+        "Curtis controller fault code stored — BLE/console required to read on B16X/B20X/B25X.",
+        "Key switch barrel internal contact wear on older D-series — turn-and-wiggle to start.",
+      ],
+      questions: [
+        { q: "Does the dash power up with key on?", yes: "Crank or fuel side — Doosan diagnostics", no: "Key switch, OPS relay (B-series), or main power" },
+        { q: "Is this an LPG GC25E/30E that worked yesterday?", yes: "Lockoff solenoid — G424F engine common after-sit failure", no: "Different fault path" },
+        { q: "D-series diesel with long crank to start?", yes: "Fuel pump priming weak — D24NAP wear, prime and test", no: "Spark, glow plugs, or compression" },
+        { q: "B-series electric — fault code on display?", yes: "Curtis controller code lookup required — keep a code list handy", no: "No code — different path" },
+      ],
+    },
+    steering: {
+      tendencies: [
+        "Hydraulic orbital wear on GC25E — Korean OEM holds up well but eventual seal weep.",
+        "Steer cylinder rod seal on D30S — visible oil at rod after high hours.",
+        "Tie rod end wear on B-series electrics — clunking at direction reversal.",
+        "Priority valve relief setting drift on D35C — heavy steering under simultaneous lift.",
+        "Steer encoder fault on BR16JW reach truck — Curtis electric steering, codes stored.",
+      ],
+      questions: [
+        { q: "Spongy or delayed steering feel?", yes: "Orbital wear or air in steering circuit — GC-series common high-hour", no: "Mechanical wear" },
+        { q: "Oil at steer cylinder rod?", yes: "Rod seal replacement — D30S typical wear", no: "Internal hydraulic" },
+        { q: "Clunk at direction change?", yes: "Tie rod end wear — B-series check first, easy to verify", no: "Hydraulic side" },
+        { q: "Reach truck with electric steering fault?", yes: "Steer encoder — BR16JW Curtis system, pull code", no: "Different reach truck steering issue" },
+      ],
+    },
+    mast_hydraulic: {
+      tendencies: [
+        "Lift cylinder seal wear on D-series — fork drift under load, common around 5000 hours.",
+        "Mast carriage hose chafe on GC30E — Doosan routing tight against mast channels.",
+        "Tilt cylinder pin and bushing wear on D35C — perceived drift from mechanical play.",
+        "Reach cylinder hose burst risk on BR16JW — pressure pulses at full retract.",
+        "Mast roller wear on B25X electric — service interval often missed on warehouse trucks.",
+      ],
+      questions: [
+        { q: "Load drifts down under hold?", yes: "Lift cylinder seal wear — D-series typical around 5000hr", no: "Mast movement or noise issue" },
+        { q: "Visible hose wear at mast carriage?", yes: "Chafe through risk — GC30E routing weakness, re-route or replace", no: "Internal hydraulic" },
+        { q: "Tilt cylinder shows play at pin?", yes: "Pin/bushing wear — D35C common, replace before more wear cascades", no: "Seal wear" },
+        { q: "Reach cylinder hose visibly worn?", yes: "Pressure-pulse fatigue — BR16JW known, replace before burst", no: "Other reach truck hydraulic" },
+      ],
+    },
+    brakes: {
+      tendencies: [
+        "Master cylinder failure on GC25E — internal bypass, slow pedal fade.",
+        "Wet disc brake wear on D-series powershift trucks — requires trans removal.",
+        "Parking brake cable stretch on D30S — adjuster runs out of travel.",
+        "Brake booster vacuum line crack on GC30E — hard pedal, poor assist.",
+        "B-series electrics: regen brake calibration drift — feels weak under controller.",
+      ],
+      questions: [
+        { q: "Pedal slowly fades to floor?", yes: "Master cylinder bypass — GC25E common Doosan failure", no: "Adjustment, lining, or external issue" },
+        { q: "Is this a D-series with internal wet brakes?", yes: "Wet disc wear — trans removal required, Doosan service item", no: "External service brake" },
+        { q: "Parking brake adjuster maxed out?", yes: "Cable stretch — D30S common, replace cable", no: "Mechanism or shoe wear" },
+        { q: "GC30E with hard pedal and poor stopping?", yes: "Booster vacuum line crack — Doosan-specific brittle line", no: "Different brake fault" },
+      ],
+    },
+    transmission: {
+      tendencies: [
+        "Powershift clutch pack wear on D30S — harsh engagement when warm.",
+        "Inching valve cable on GC25E — adjustment drifts with use.",
+        "Directional solenoid coil failure on D-series — intermittent F or R loss.",
+        "Trans cooler restriction on D35C operating heavy duty cycles.",
+        "B-series drive motor brush wear (older models) or bearing growl (AC drive) on B25X.",
+      ],
+      questions: [
+        { q: "Hard engagement when trans is warm?", yes: "Clutch pack wear — D30S powershift common", no: "Cold engagement issue is different" },
+        { q: "F or R intermittently lost?", yes: "Directional solenoid coil — Doosan D-series wear", no: "Mechanical clutch issue" },
+        { q: "Trans overheats during heavy use?", yes: "Cooler restriction — D35C cleaning often needed", no: "Internal wear — pressure test" },
+        { q: "B-series electric with drive motor noise?", yes: "Brush wear (older) or bearing growl (AC) — B25X high-hour wear", no: "Other drive issue" },
+      ],
+    },
+    electrical: {
+      tendencies: [
+        "Curtis controller fault codes on B-series — common, well-documented, scanner-friendly.",
+        "Instrument cluster relay sticking on GC25E — random dash dropouts.",
+        "Harness chafe behind dash on D30S — Doosan routing pinches at console mount.",
+        "Battery state-of-charge meter calibration on B-series — false low warnings.",
+        "Throttle position sensor wear on G424F engine (GC25E/GC30E) — surging and dead spots.",
+      ],
+      questions: [
+        { q: "B-series electric with Curtis code displayed?", yes: "Code lookup — Curtis docs are accurate, follow procedure", no: "No code — different path" },
+        { q: "Random dash power dropouts?", yes: "Cluster relay sticking — GC25E known, replace relay", no: "Different power issue" },
+        { q: "Issues happen when wheel turned full lock?", yes: "Harness chafe behind dash — D30S console mount issue, inspect", no: "Different fault location" },
+        { q: "G424F engine surging at part throttle?", yes: "Throttle position sensor wear — Doosan LPG common, replace TPS", no: "Different drivability issue" },
+      ],
+    },
+    overheating: {
+      tendencies: [
+        "Radiator dust packing on D-series — Doosan core spacing tight, packs fast in dusty sites.",
+        "G424F thermostat stuck closed — rapid overheat under any load.",
+        "Water pump weep on D24NAP diesel — slow external loss at weep hole.",
+        "Cooling fan clutch failure on D30S — fan spins but moves no air.",
+        "B-series motor overheat under sustained heavy lift — duty cycle exceeded.",
+      ],
+      questions: [
+        { q: "How fast does overheat happen?", yes: "Within minutes = thermostat stuck or severe blockage", no: "Gradual — flow or capacity" },
+        { q: "Radiator clogged with dust/debris?", yes: "Clean core — D-series spacing makes this critical", no: "Internal flow issue" },
+        { q: "Drip from water pump weep hole?", yes: "Pump seal failing — D24NAP, replace before catastrophic", no: "Other leak source" },
+        { q: "Fan spinning but no air movement?", yes: "Fan clutch failure — D30S common, replace clutch", no: "Belt, motor, or other" },
+      ],
+    },
+    noise: {
+      tendencies: [
+        "G424F timing chain rattle on cold start — tensioner wear after 6000hr.",
+        "D-series transmission whine — input bearing wear precedes failure by months.",
+        "Hydraulic pump cavitation on GC30E — aerated oil from low level common.",
+        "Drive axle bearing growl on D30S — worsens under turning load.",
+        "Exhaust manifold gasket leak on D24NAP — ticking that worsens with temperature.",
+      ],
+      questions: [
+        { q: "Cold-start rattle that goes away warm?", yes: "Timing chain tensioner — G424F or D24NAP wear, common", no: "Not timing chain" },
+        { q: "Whine from trans area, growing?", yes: "Trans input bearing — D-series typical wear", no: "Other source" },
+        { q: "Whine on lift only?", yes: "Pump cavitation — check oil level first, easiest fix", no: "Engine accessory or other" },
+        { q: "Ticking that gets louder with temp?", yes: "Exhaust manifold gasket — D24NAP common", no: "Internal engine noise" },
+      ],
+    },
+  },
+
+  clark: {
+    no_start: {
+      tendencies: [
+        "Continental / GM 2.4L ignition module failure on older Clark — no spark condition.",
+        "Carburetor float stuck on LPG C-series after sitting — flooded or starved.",
+        "Neutral safety switch adjustment drift on powershift Clark — out of safe position.",
+        "Battery cable corrosion at starter on legacy C25/C30 — voltage drop at cranking.",
+        "Aging ignition harness on Clark — brittle insulation cracks, shorts to chassis.",
+      ],
+      questions: [
+        { q: "Dash powers up with key?", yes: "Crank or fuel side", no: "Battery, key switch, or main wiring on legacy Clark" },
+        { q: "Is this an LPG C-series that's been sitting?", yes: "Carburetor float — Clark LPG common after-sit issue", no: "Different fuel path" },
+        { q: "Does it crank but not fire?", yes: "Ignition module on GM 2.4L or harness short — Clark legacy common", no: "Fuel delivery or compression" },
+        { q: "Cranks slow even with good battery?", yes: "Cable corrosion at starter — Clark legacy wear, voltage drop test", no: "Starter motor wear" },
+      ],
+    },
+    steering: {
+      tendencies: [
+        "Hydraulic orbital seal failure on C-series — oil weep under truck overnight.",
+        "Steer axle king pin wear on legacy C25/C30 — clunk and slop, very common high-hour.",
+        "Tie rod end play on GTX25 — wandering before clunk.",
+        "Steering column bushing wear on cushion-tire CGC25 — column moves in mount.",
+        "Power steering belt slip on GTX25 — heavy steering under engine load.",
+      ],
+      questions: [
+        { q: "Oil pooling under front of truck?", yes: "Orbital seal failure — C-series legacy common", no: "Internal wear or no leak" },
+        { q: "Clunk from steer axle on legacy C25/C30?", yes: "King pin wear — extremely common on high-hour Clarks", no: "Other source" },
+        { q: "Wandering on straight line?", yes: "Tie rod ends or king pins — GTX25 also affected", no: "Hydraulic side" },
+        { q: "Heavy steering only at high engine load?", yes: "Power steering belt slip — GTX25, retension belt", no: "Hydraulic supply" },
+      ],
+    },
+    mast_hydraulic: {
+      tendencies: [
+        "Lift cylinder packing wear on C-series — drift under load, common over 8000 hours.",
+        "Tilt cylinder seal failure on CGC25 — mast tilt creep under load.",
+        "Mast chain stretch on legacy C25/C30 — uneven fork height, replace by chain wear gauge.",
+        "Hydraulic control valve detent wear on GTX25 — levers won't hold position.",
+        "Mast roller flat spots on CGP25 LPG — jerky lift travel.",
+      ],
+      questions: [
+        { q: "Load drifts down under hold?", yes: "Lift cylinder packing — Clark C-series legacy wear, very common", no: "Different mast fault" },
+        { q: "Mast tilts forward under load?", yes: "Tilt cylinder seals — CGC25 common Clark wear", no: "Tilt valve check" },
+        { q: "Forks at uneven heights?", yes: "Chain stretch — measure with chain gauge, replace if over spec", no: "Anchor or wear" },
+        { q: "Control levers drift back from position?", yes: "Detent wear — GTX25 known, rebuild or replace valve", no: "Spring or linkage" },
+      ],
+    },
+    brakes: {
+      tendencies: [
+        "Brake master cylinder bypass on C-series — pedal slowly sinks, Clark legacy issue.",
+        "Brake drum scoring on CGC25/CGP25 — heavy use without inspection.",
+        "Parking brake cable corrosion on outdoor-used Clark — seized in adjuster.",
+        "Wheel cylinder seal failure on legacy C25/C30 — external brake fluid at wheel.",
+        "Brake shoe contamination on CGP25 LPG — oil leak from rear seal soaks shoes.",
+      ],
+      questions: [
+        { q: "Pedal fades to floor when held?", yes: "Master cylinder bypass — C-series classic Clark wear", no: "Different brake issue" },
+        { q: "Squealing and reduced braking on CGC25?", yes: "Drum scoring — measure drums, replace if past wear limit", no: "Lining or fluid" },
+        { q: "Parking brake won't release after sitting?", yes: "Cable seized — Clark outdoor unit common, lubricate cable", no: "Mechanism issue" },
+        { q: "Pull to one side under braking?", yes: "Contaminated shoe (oil) or wheel cylinder sticking — CGP25 watch rear seal", no: "System-wide issue" },
+      ],
+    },
+    transmission: {
+      tendencies: [
+        "Powershift clutch pack wear on C-series — slipping under load after years.",
+        "Inching valve linkage adjustment drift on legacy Clark — poor creep.",
+        "Trans cooler line corrosion on CGC25 — leak at fittings.",
+        "Directional control valve internal wear on GTX25 — slow engagement.",
+        "Drive axle pinion seal failure on legacy C25/C30 — gear oil loss at drive flange.",
+      ],
+      questions: [
+        { q: "Slipping under load, especially on grade?", yes: "Powershift clutch pack — C-series wear, typical Clark legacy", no: "Other transmission issue" },
+        { q: "Poor inching pedal modulation?", yes: "Inching linkage adjustment — Clark legacy, recalibrate per spec", no: "Internal trans" },
+        { q: "Fluid leak at trans cooler lines?", yes: "Line corrosion at fittings — CGC25 common, replace lines", no: "Other fluid source" },
+        { q: "Gear oil weep at drive flange?", yes: "Pinion seal — legacy C25/C30 wear, replace seal", no: "Differential or other" },
+      ],
+    },
+    electrical: {
+      tendencies: [
+        "Aging wiring harness on legacy C-series — brittle insulation, multiple shorts possible.",
+        "Instrument cluster failure on CGC25 — gauges read incorrectly or not at all.",
+        "Fuse box corrosion on outdoor-used Clark — intermittent multi-circuit faults.",
+        "Horn switch wear in steering column on C-series — fails or stays on.",
+        "ECX electric series: Curtis controller faults — code lookup required.",
+      ],
+      questions: [
+        { q: "Multiple intermittent electrical faults at once?", yes: "Aging harness short or fuse box corrosion — legacy Clark, full inspection", no: "Single circuit issue" },
+        { q: "Instrument gauges reading wrong or dead?", yes: "Cluster failure — CGC25 known, full cluster replacement common", no: "Sender issue" },
+        { q: "Horn stuck on or won't sound?", yes: "Steering column horn switch — C-series wear", no: "Wiring or relay" },
+        { q: "ECX electric with controller code?", yes: "Curtis controller code lookup — same playbook as Doosan B-series", no: "Other electrical" },
+      ],
+    },
+    overheating: {
+      tendencies: [
+        "Radiator fin clogging on C-series — older Clark cores accumulate years of warehouse dust.",
+        "Thermostat stuck closed on GM 2.4L — rapid overheat, common Clark IC wear.",
+        "Water pump weep on legacy Continental engines (older C-series) — slow external loss.",
+        "Cylinder head crack on overheated GM 2.4L — pushes coolant into oil or exhaust.",
+        "Cooling fan motor failure on ECX electrics — controller overheat warning, derate.",
+      ],
+      questions: [
+        { q: "Coolant being pushed out or appearing in oil?", yes: "Head gasket or cracked head — GM 2.4L common after overheat event", no: "External or flow issue" },
+        { q: "Radiator visibly packed with debris?", yes: "Clean core — Clark legacy units accumulate over years", no: "Internal flow issue" },
+        { q: "Drip from water pump?", yes: "Pump seal failing — Continental engines on older C-series", no: "Other leak source" },
+        { q: "ECX with controller temp warning?", yes: "Cooling fan motor failure — controller derates, check fan", no: "Battery or duty cycle" },
+      ],
+    },
+    noise: {
+      tendencies: [
+        "GM 2.4L timing chain rattle on cold start — tensioner wear, common Clark IC.",
+        "Powershift trans whine on C-series — input bearing wear, audible months before failure.",
+        "Drive axle bearing growl on legacy C25/C30 — high-hour wear, typical Clark.",
+        "Hydraulic pump cavitation on cold morning — aerated oil from low level.",
+        "Exhaust manifold leak on GM 2.4L — studs corrode, ticking that worsens with temp.",
+      ],
+      questions: [
+        { q: "Cold-start rattle that goes away warm?", yes: "Timing chain tensioner — GM 2.4L wear", no: "Not timing chain" },
+        { q: "Whine from trans area, getting louder?", yes: "Input bearing wear — C-series legacy, schedule trans service", no: "Pump or other" },
+        { q: "Growl under turning load?", yes: "Drive axle bearing — legacy C25/C30 common high-hour", no: "Other drivetrain" },
+        { q: "Ticking that worsens with engine temperature?", yes: "Exhaust manifold leak — GM 2.4L stud corrosion, common Clark", no: "Internal engine" },
       ],
     },
   },
