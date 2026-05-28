@@ -1,0 +1,21 @@
+# ~/.cloudflared/config.yml
+#
+# Cloudflared tunnel config for liftiq.renviasciences.com.
+# Replace <TUNNEL-UUID> with the UUID printed by `cloudflared tunnel create liftiq`.
+# Replace the credentials-file path if you put it elsewhere.
+
+tunnel: <TUNNEL-UUID>
+credentials-file: /Users/connor/.cloudflared/<TUNNEL-UUID>.json
+
+# Ingress rules are matched top-to-bottom.
+ingress:
+  - hostname: liftiq.renviasciences.com
+    service: http://localhost:3001
+    originRequest:
+      # The LiftIQ photo upload is multipart; bump the body limit so
+      # large uploads aren't truncated by cloudflared's default.
+      noTLSVerify: true
+      connectTimeout: 30s
+
+  # Catch-all (required as the last rule)
+  - service: http_status:404

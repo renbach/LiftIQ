@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  LiftIQ launchd service for macOS.
+
+  Install:
+    cp deploy/mac/com.renviasciences.liftiq.plist ~/Library/LaunchAgents/
+    # Edit the path in <WorkingDirectory> and the two log paths below to match
+    # where you cloned the project on the Mac mini (e.g. /Users/connor/liftiq-project)
+    launchctl load ~/Library/LaunchAgents/com.renviasciences.liftiq.plist
+
+  Restart after editing:
+    launchctl unload ~/Library/LaunchAgents/com.renviasciences.liftiq.plist
+    launchctl load ~/Library/LaunchAgents/com.renviasciences.liftiq.plist
+
+  Tail logs:
+    tail -f /Users/connor/Library/Logs/liftiq.log
+    tail -f /Users/connor/Library/Logs/liftiq.err.log
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.renviasciences.liftiq</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/node</string>
+        <string>server/src/index.js</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/connor/liftiq-project</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>NODE_ENV</key>
+        <string>production</string>
+        <key>PATH</key>
+        <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/connor/Library/Logs/liftiq.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/connor/Library/Logs/liftiq.err.log</string>
+
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+</dict>
+</plist>
