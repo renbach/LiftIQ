@@ -3,7 +3,7 @@ import { theme } from "../theme.js";
 import { KINDS, BRANDS, SYSTEMS, FAILURE_TYPES } from "../data/taxonomy.js";
 import { fetchMedia, uploadMedia, updateMedia, deleteMedia } from "../lib/api.js";
 
-export default function MediaTagger() {
+export default function MediaTagger({ isDesktop = false }) {
   const [view, setView] = useState("library");
   const [items, setItems] = useState([]);
   const [stats, setStats] = useState({ total: 0, tagged: 0, withParts: 0 });
@@ -155,24 +155,37 @@ export default function MediaTagger() {
     <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
       {/* Sub-header */}
       <div style={{
-        padding: "12px 20px",
+        padding: isDesktop ? "16px 24px" : "12px 20px",
         borderBottom: `1px solid ${theme.border}`,
         background: theme.bgCard,
       }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, gap: 16 }}>
           <div style={{
             fontSize: 10, color: theme.textMuted, letterSpacing: "0.15em",
             textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace",
           }}>
             Field Reference Library
           </div>
+
+          {/* Desktop: stats inline next to title */}
+          {view === "library" && isDesktop && (
+            <div style={{ display: "flex", gap: 24, flex: 1, marginLeft: 24 }}>
+              {[["Total", stats.total], ["Tagged", stats.tagged], ["With Part #", stats.withParts]].map(([label, val]) => (
+                <div key={label}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: theme.text, fontFamily: "'JetBrains Mono', monospace", lineHeight: 1 }}>{val}</div>
+                  <div style={{ fontSize: 9, color: theme.textMuted, textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 4 }}>{label}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {view === "library" && (
             <button
               onClick={() => fileRef.current?.click()}
               style={{
                 background: theme.accent, border: "none", color: "#fff",
-                borderRadius: 6, padding: "7px 14px", cursor: "pointer",
-                fontSize: 11, fontWeight: 700, letterSpacing: "0.05em",
+                borderRadius: 6, padding: isDesktop ? "9px 18px" : "7px 14px", cursor: "pointer",
+                fontSize: isDesktop ? 12 : 11, fontWeight: 700, letterSpacing: "0.05em",
               }}
             >
               + UPLOAD
@@ -185,7 +198,8 @@ export default function MediaTagger() {
           onChange={(e) => { if (e.target.files?.length) handleFiles(e.target.files); e.target.value = ""; }}
         />
 
-        {view === "library" && (
+        {/* Mobile: stats below header */}
+        {view === "library" && !isDesktop && (
           <div style={{ display: "flex", gap: 16 }}>
             {[["Total", stats.total], ["Tagged", stats.tagged], ["With Part #", stats.withParts]].map(([label, val]) => (
               <div key={label}>
@@ -197,11 +211,11 @@ export default function MediaTagger() {
         )}
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: 20 }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: isDesktop ? "20px 24px" : 20 }}>
         {/* ── LIBRARY VIEW ── */}
         {view === "library" && (
           <>
-            <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 6, marginBottom: isDesktop ? 12 : 8, flexWrap: "wrap" }}>
               {[
                 { value: "", label: "All" },
                 { value: "unsorted", label: `Unsorted${stats.byKind?.unsorted ? ` · ${stats.byKind.unsorted}` : ""}` },
@@ -219,7 +233,8 @@ export default function MediaTagger() {
                       background: active ? theme.accent : theme.bgCard,
                       color: active ? "#fff" : theme.textDim,
                       border: `1px solid ${active ? theme.accent : theme.border}`,
-                      borderRadius: 999, padding: "5px 11px", fontSize: 11,
+                      borderRadius: 999, padding: isDesktop ? "6px 14px" : "5px 11px",
+                      fontSize: isDesktop ? 12 : 11,
                       fontWeight: 700, letterSpacing: "0.04em", cursor: "pointer",
                     }}
                   >{chip.label}</button>
@@ -230,7 +245,7 @@ export default function MediaTagger() {
               <select
                 value={filter.brand}
                 onChange={(e) => setFilter({ ...filter, brand: e.target.value })}
-                style={selectStyle}
+                style={{ ...selectStyle, width: isDesktop ? 200 : "100%" }}
                 disabled={filter.kind && filter.kind !== "forklift" && filter.kind !== ""}
               >
                 <option value="">All Brands</option>
@@ -239,7 +254,7 @@ export default function MediaTagger() {
               <select
                 value={filter.system}
                 onChange={(e) => setFilter({ ...filter, system: e.target.value })}
-                style={selectStyle}
+                style={{ ...selectStyle, width: isDesktop ? 200 : "100%" }}
                 disabled={filter.kind && filter.kind !== "forklift" && filter.kind !== ""}
               >
                 <option value="">All Systems</option>
@@ -249,7 +264,7 @@ export default function MediaTagger() {
                 placeholder="Search part #, notes..."
                 value={filter.q}
                 onChange={(e) => setFilter({ ...filter, q: e.target.value })}
-                style={{ ...selectStyle, flex: 1, minWidth: 120 }}
+                style={{ ...selectStyle, flex: 1, minWidth: 120, width: "auto" }}
               />
             </div>
 
@@ -268,7 +283,13 @@ export default function MediaTagger() {
                 </div>
               </div>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: isDesktop
+                  ? "repeat(auto-fill, minmax(220px, 1fr))"
+                  : "1fr 1fr",
+                gap: isDesktop ? 14 : 10,
+              }}>
                 {items.map((it) => (
                   <div key={it.id} style={{
                     background: theme.bgCard, border: `1px solid ${theme.border}`,
@@ -406,15 +427,23 @@ export default function MediaTagger() {
 
       {/* Edit modal */}
       {editing && (
-        <div style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)",
-          display: "flex", justifyContent: "center", zIndex: 50,
-        }}>
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget && isDesktop) closeEdit(); }}
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)",
+            display: "flex", justifyContent: "center",
+            alignItems: isDesktop ? "center" : "stretch",
+            padding: isDesktop ? 24 : 0, zIndex: 50,
+          }}
+        >
           <div style={{
-            background: theme.bg, width: "100%", maxWidth: 540,
+            background: theme.bg, width: "100%",
+            maxWidth: isDesktop ? 980 : 540,
+            maxHeight: isDesktop ? "calc(100vh - 48px)" : "100%",
             display: "flex", flexDirection: "column",
-            borderLeft: `1px solid ${theme.border}`,
-            borderRight: `1px solid ${theme.border}`,
+            border: `1px solid ${theme.border}`,
+            borderRadius: isDesktop ? 12 : 0,
+            overflow: "hidden",
           }}>
             {/* Header */}
             <div style={{
@@ -439,25 +468,44 @@ export default function MediaTagger() {
             </div>
 
             {/* Body */}
-            <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
-              <div
-                onClick={() => setLightbox({ imageUrl: editing.imageUrl })}
-                style={{
-                  width: "100%", aspectRatio: "4/3", background: "#000",
-                  borderRadius: 8, overflow: "hidden", marginBottom: 8, cursor: "zoom-in",
-                  position: "relative",
-                }}
-              >
-                <img src={editing.imageUrl} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-                <div style={{
-                  position: "absolute", bottom: 6, right: 6, background: "rgba(0,0,0,0.6)",
-                  color: theme.textDim, fontSize: 9, padding: "2px 6px", borderRadius: 4,
-                  letterSpacing: "0.05em", textTransform: "uppercase",
-                }}>tap to zoom</div>
+            <div style={{
+              flex: 1, overflowY: "auto",
+              padding: isDesktop ? 0 : 16,
+              display: isDesktop ? "grid" : "block",
+              gridTemplateColumns: isDesktop ? "minmax(0, 1fr) 360px" : undefined,
+              gap: 0,
+            }}>
+              <div style={{
+                padding: isDesktop ? 20 : 0,
+                background: isDesktop ? theme.bg : "transparent",
+                borderRight: isDesktop ? `1px solid ${theme.border}` : "none",
+                display: "flex", flexDirection: "column", gap: 8,
+                minWidth: 0,
+              }}>
+                <div
+                  onClick={() => setLightbox({ imageUrl: editing.imageUrl })}
+                  style={{
+                    width: "100%",
+                    aspectRatio: isDesktop ? "auto" : "4/3",
+                    flex: isDesktop ? 1 : "none",
+                    background: "#000",
+                    borderRadius: 8, overflow: "hidden", cursor: "zoom-in",
+                    position: "relative", minHeight: isDesktop ? 320 : "auto",
+                  }}
+                >
+                  <img src={editing.imageUrl} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                  <div style={{
+                    position: "absolute", bottom: 8, right: 8, background: "rgba(0,0,0,0.65)",
+                    color: theme.textDim, fontSize: 9, padding: "2px 6px", borderRadius: 4,
+                    letterSpacing: "0.05em", textTransform: "uppercase",
+                  }}>tap to zoom</div>
+                </div>
+                <div style={{ fontSize: 11, color: theme.textMuted, wordBreak: "break-all" }}>
+                  {editing.originalName}
+                </div>
               </div>
-              <div style={{ fontSize: 11, color: theme.textMuted, marginBottom: 14, wordBreak: "break-all" }}>
-                {editing.originalName}
-              </div>
+
+              <div style={{ padding: isDesktop ? 20 : 0, minWidth: 0 }}>
 
               {/* Kind picker — segmented control */}
               <div style={{ marginBottom: 14 }}>
@@ -557,6 +605,7 @@ export default function MediaTagger() {
                   Pick a Kind above to see the relevant tag fields.
                 </div>
               )}
+              </div>
             </div>
 
             {/* Footer */}

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#0a0c0f"/>
+  <rect x="0" y="0" width="1200" height="630" fill="url(#g)" opacity="0.4"/>
+  <defs>
+    <radialGradient id="g" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#3a7bfd" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#0a0c0f" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <g font-family="'JetBrains Mono', 'Courier New', monospace" font-weight="700">
+    <text x="600" y="290" text-anchor="middle" font-size="140" letter-spacing="-4">
+      <tspan fill="#3a7bfd">LIFT</tspan><tspan fill="#e8ecf2">IQ</tspan>
+    </text>
+    <text x="600" y="360" text-anchor="middle" font-size="22" fill="#6b7a90" letter-spacing="6">
+      FORKLIFT DIAGNOSTIC + FIELD REFERENCE
+    </text>
+    <text x="600" y="430" text-anchor="middle" font-size="16" fill="#4a566a" letter-spacing="4">
+      KG LIFT  ·  TOYOTA  ·  YALE / HYSTER  ·  MITSUBISHI / UNICARRIER
+    </text>
+  </g>
+  <line x1="200" y1="500" x2="1000" y2="500" stroke="#1e2430" stroke-width="1"/>
+  <text x="600" y="540" text-anchor="middle" font-family="'IBM Plex Sans', sans-serif" font-size="14" fill="#4a566a" letter-spacing="2">
+    liftiq.renviasciences.com
+  </text>
+</svg>
