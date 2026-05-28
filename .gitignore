@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+*.db
+server/storage/images/*
+server/storage/thumbs/*
+!server/storage/images/.gitkeep
+!server/storage/thumbs/.gitkeep
+.DS_Store
