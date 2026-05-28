@@ -58,6 +58,18 @@ export const BRANDS = {
     "FG25T", "FG30T", "FD25T", "FD30T", "FD40T",
     "FB20", "FB25", "FB30", "FB16RW", "FB15S",
   ],
+  "Big Joe": [
+    "WPT45", "WPT60", "PDS30", "B30", "B40",
+    "WSR22", "WSR30", "E30", "LXT50", "J2-94",
+  ],
+  "Combilift": [
+    "C4000", "C5000", "C6000", "C8000", "AM20",
+    "AM25", "COMBi-CS", "COMBi-MR", "COMBi-WR", "COMBi-XLE",
+  ],
+  "Aichi": [
+    "SR12CJM", "SR15A1JM", "SR21CJ", "SP14CJM", "SP18CJM",
+    "SV08CNL", "TZ34CJM", "SR123A1NM", "SP14ECJM", "TZ48CJM",
+  ],
 };
 
 export const SYSTEMS = [
@@ -101,6 +113,9 @@ export const DIAGNOSTIC_BRANDS = {
   linde: { name: "Linde", models: BRANDS["Linde"], icon: "◐" },
   jungheinrich: { name: "Jungheinrich", models: BRANDS["Jungheinrich"], icon: "✚" },
   komatsu: { name: "Komatsu", models: BRANDS["Komatsu"], icon: "◎" },
+  big_joe: { name: "Big Joe", models: BRANDS["Big Joe"], icon: "▣" },
+  combilift: { name: "Combilift", models: BRANDS["Combilift"], icon: "❖" },
+  aichi: { name: "Aichi", models: BRANDS["Aichi"], icon: "⬆" },
 };
 
 export const SYMPTOM_CATEGORIES = [
@@ -1723,6 +1738,375 @@ export const DIAGNOSTIC_DATA = {
         { q: "Whine from trans area?", yes: "Trans input bearing — FD-T high-hour wear", no: "Other source" },
         { q: "Whine on cold-start lift?", yes: "Pump cavitation — aerated oil, check level", no: "Bearing failure" },
         { q: "Mast chain rattle at rest?", yes: "Chain tension per Komatsu spec — verify and adjust", no: "Mast wheel noise" },
+      ],
+    },
+  },
+
+  big_joe: {
+    no_start: {
+      tendencies: [
+        "Tiller switch wear on WPT45/60 walkies — primary on/off, very common failure point.",
+        "Operator presence sensor on PDS30 rider pallet — won't power up with operator absent (or, sometimes, present).",
+        "Curtis controller BDI lockout on Li-ion equipped J2-94/LXT50 — partial charge state lockouts.",
+        "Battery connector pin arcing on B30/B40 — high resistance, controller refuses operation.",
+        "Belly button (emergency reverse) stuck on walkies — held position prevents power-up.",
+      ],
+      questions: [
+        { q: "Walkie pallet (WPT) with no power at all?", yes: "Tiller switch wear — Big Joe walkie primary failure point", no: "Different power issue" },
+        { q: "Li-ion J2-94 or LXT50 refusing operation?", yes: "Curtis BDI lockout state — full charge cycle reset, Big Joe Li-ion quirk", no: "Different fault" },
+        { q: "Battery connector hot or pitted?", yes: "Pin arcing — B30/B40 known wear, replace connector", no: "Different power issue" },
+        { q: "Rider pallet (PDS30) won't power up with operator?", yes: "Operator presence sensor — common Big Joe rider", no: "Different fault" },
+      ],
+    },
+    steering: {
+      tendencies: [
+        "Tiller handle steering linkage wear on walkies — slop in pivot pin.",
+        "Steering motor brush wear on legacy DC Big Joe rider pallets.",
+        "Tie rod end wear on B30/B40 rider — clunking at low speed turns.",
+        "Steer encoder fault on newer LXT/J-series — Curtis code stored.",
+        "Tiller pivot bushing wear on WPT60 — sloppy feel under heavy load.",
+      ],
+      questions: [
+        { q: "Walkie pallet with sloppy tiller feel?", yes: "Tiller pivot bushing wear — WPT45/60 common wear", no: "Different mechanical issue" },
+        { q: "Rider pallet with steering motor brush wear symptoms?", yes: "Legacy DC steering motor — replace brushes", no: "Different fault" },
+        { q: "Clunk at steer wheel on direction change?", yes: "Tie rod end wear — B30/B40 inspection", no: "Different mechanical" },
+        { q: "Newer Big Joe with steering Curtis code?", yes: "Steer encoder fault — pull code with Curtis scanner", no: "Different control" },
+      ],
+    },
+    mast_hydraulic: {
+      tendencies: [
+        "Lift cylinder seal on WSR stackers — fork drift under load.",
+        "Mast chain stretch on E30/E40 stackers — uneven fork height.",
+        "Lift pump motor brush wear on legacy DC Big Joe — slow lift, eventually fails.",
+        "Hydraulic hose chafe on stacker masts — Big Joe routing tight in some configurations.",
+        "Free-lift chain anchor pin retainer loss on WSR — chain anchor migrates.",
+      ],
+      questions: [
+        { q: "Stacker (WSR) with fork drift under load?", yes: "Lift cylinder seal — replace seal kit", no: "Different mast issue" },
+        { q: "Slow lift speed on legacy DC Big Joe?", yes: "Lift pump motor brushes worn — replace brushes", no: "Hydraulic flow" },
+        { q: "Forks at uneven heights on E30/E40?", yes: "Chain stretch — measure and replace", no: "Anchor issue" },
+        { q: "Visible hose wear on stacker mast?", yes: "Hose chafe — re-route or replace before burst", no: "Internal hydraulic" },
+      ],
+    },
+    brakes: {
+      tendencies: [
+        "Plug-brake contactor wear on walkies — weak plug stopping.",
+        "Electromagnetic brake wear on rider pallets — won't hold on grade.",
+        "Brake pedal switch on B30/B40 — stays activated.",
+        "Tiller brake (auto-engage when tiller upright) sensor fault on walkies.",
+        "Regen brake calibration drift on AC drive newer Big Joe.",
+      ],
+      questions: [
+        { q: "Walkie with weak plug brake?", yes: "Plug-brake contactor wear — Big Joe walkie service item", no: "Different brake fault" },
+        { q: "Rider pallet not holding on grade?", yes: "Electromagnetic brake disc wear — replace", no: "Different parking system" },
+        { q: "Tiller brake doesn't engage when tiller raised vertical?", yes: "Tiller brake sensor fault — Big Joe walkie known", no: "Mechanical linkage" },
+        { q: "AC drive Big Joe with weak braking?", yes: "Regen calibration drift — Curtis recalibration", no: "Mechanical or hydraulic" },
+      ],
+    },
+    transmission: {
+      tendencies: [
+        "Drive motor brush wear on legacy DC walkies/rider pallets — slipping or no drive.",
+        "AC drive motor bearing on newer LXT/J-series — whine then growl.",
+        "Hex coupling wear on drive coupling — clunk on direction change.",
+        "Gear case oil seal at drive flange — fluid under wheels.",
+        "Drive parameter drift in Curtis controller — jerky acceleration.",
+      ],
+      questions: [
+        { q: "Legacy DC walkie/rider with slipping drive?", yes: "Drive motor brushes — replace before commutator damage", no: "Different fault" },
+        { q: "Newer Big Joe with drive whine progressing?", yes: "AC motor bearing — LXT/J-series wear", no: "Different drive issue" },
+        { q: "Clunk on F/R change at low speed?", yes: "Hex coupling spline wear — common Big Joe drive", no: "Other drivetrain" },
+        { q: "Fluid leak at drive wheels?", yes: "Gear case output seal — service item", no: "Other leak source" },
+      ],
+    },
+    electrical: {
+      tendencies: [
+        "Curtis controller fault codes — Big Joe uses Curtis on nearly everything, scanner-friendly.",
+        "Li-ion BMS fault on J2-94/LXT50 — firmware reset sometimes resolves.",
+        "Tiller handle wiring chafe on walkies — high flex point.",
+        "Charging connector pin wear on plug-in models — heat damage.",
+        "Operator presence sensor wiring on rider pallets — flex damage.",
+      ],
+      questions: [
+        { q: "Curtis controller code displayed?", yes: "Standard Curtis code lookup — Big Joe documentation good", no: "No code path" },
+        { q: "Li-ion truck with BMS warning?", yes: "BMS fault — firmware reset first, common Big Joe Li-ion quirk", no: "Cell or charging issue" },
+        { q: "Tiller wiring intermittent fault?", yes: "Wire chafe at tiller pivot — common walkie failure", no: "Different harness location" },
+        { q: "Charging connector hot to touch after charge?", yes: "Pin wear and heat damage — replace before further damage", no: "Different charging issue" },
+      ],
+    },
+    overheating: {
+      tendencies: [
+        "Drive motor overheat on heavy duty cycle Big Joe — application exceeds duty rating.",
+        "Controller heat sink fan on Curtis — drive cuts back if fan fails.",
+        "Li-ion battery overheat from fast-charging cycling — BMS lockout.",
+        "Lift pump motor overheat on E-series stackers — repeated lift cycles.",
+        "Legacy DC motor commutator overheat — brush wear and arcing.",
+      ],
+      questions: [
+        { q: "Heavy duty cycle and motor overheat?", yes: "Duty rating exceeded — review application pattern", no: "Single component" },
+        { q: "Controller overtemp code?", yes: "Heat sink fan check — Curtis cooling", no: "Different overheat source" },
+        { q: "Li-ion hot after fast charge?", yes: "Fast-charge cycling overheat — adjust charging frequency", no: "BMS or cell" },
+        { q: "Legacy DC drive smell under load?", yes: "Brush/commutator wear — immediate inspection", no: "Other thermal" },
+      ],
+    },
+    noise: {
+      tendencies: [
+        "AC drive motor bearing growl on LXT/J-series — high-hour wear.",
+        "Lift pump whine on stackers — bearing wear under hydraulic load.",
+        "Mast wheel flat spots on WSR stackers — clicking with lift.",
+        "Tiller pivot squeak on walkies — lubrication needed.",
+        "Contactor click anomalies on Li-ion Big Joe — high-current switching wear.",
+      ],
+      questions: [
+        { q: "Drive wheels growling on newer Big Joe?", yes: "AC drive motor bearing — high-hour wear", no: "Other drivetrain" },
+        { q: "Whine during lift on stacker?", yes: "Lift pump motor bearing — service item", no: "Mast side" },
+        { q: "Clicking accompanying lift on WSR?", yes: "Mast wheel flat spots — replace wheels", no: "Different mast fault" },
+        { q: "Tiller pivot squeaking?", yes: "Lubrication — easy fix, often missed on walkies", no: "Different mechanical noise" },
+      ],
+    },
+  },
+
+  combilift: {
+    no_start: {
+      tendencies: [
+        "Seat switch failure on C-series 4-way — Combilift uses heavy-duty seat, switch eventually wears.",
+        "Kubota diesel (C4000/C5000): glow plug failure — cold no-start.",
+        "Perkins engine (some C8000): fuel solenoid stuck after long sit.",
+        "LPG lockoff solenoid on LP-equipped Combi — clicks but doesn't open.",
+        "Aisle Master AM-series: operator presence on stand-up platform — refuses power-up.",
+      ],
+      questions: [
+        { q: "Dash powers up but won't crank?", yes: "Seat switch or operator presence — Combilift safety circuit", no: "Power supply" },
+        { q: "Kubota engine hard cold start?", yes: "Glow plug failure — C4000/C5000 common", no: "Fuel side" },
+        { q: "Perkins after long sit — won't fire?", yes: "Fuel solenoid stuck — manual prime test", no: "Glow or compression" },
+        { q: "Aisle Master AM stand-up refusing power?", yes: "Operator presence on platform — AM-series check", no: "Different fault" },
+      ],
+    },
+    steering: {
+      tendencies: [
+        "4-way drive mode select fault — Combi C-series, mode won't change between sideways and forward.",
+        "Steer motor on 4-way drive — multiple steered wheels, encoder fault stored.",
+        "Tie rod end wear on Aisle Master AM — wandering in narrow aisle.",
+        "Hydraulic steering circuit on COMBi-CS — orbital wear on cushion-tire models.",
+        "Combilift's multi-wheel sync drift — wheels out of phase, hard to maneuver.",
+      ],
+      questions: [
+        { q: "Mode select between 4-way drive directions failing?", yes: "Combilift mode select fault — proprietary 4-way drive system, scanner required", no: "Different steering issue" },
+        { q: "Wheels out of phase on 4-way drive?", yes: "Multi-wheel sync drift — Combi-specific recalibration procedure", no: "Mechanical wear" },
+        { q: "Aisle Master AM with wandering in narrow aisle?", yes: "Tie rod ends — high-precision narrow aisle requires tight tolerance", no: "Hydraulic or alignment" },
+        { q: "Cushion-tire COMBi-CS with heavy steering?", yes: "Orbital wear — same as conventional forklift orbital", no: "Different steering issue" },
+      ],
+    },
+    mast_hydraulic: {
+      tendencies: [
+        "Side-shift cylinder failure on C-series — heavy use carries long loads sideways, accelerated wear.",
+        "Mast chain stretch on long-load Combilift — heavy lift cycles wear chains faster than counterbalance.",
+        "Free-lift cylinder seal on COMBi-CS straight mast — drift under load.",
+        "Hydraulic hose chafe on 4-way platforms — complex routing creates more wear points.",
+        "Tilt cylinder pin wear on AM Aisle Master — heavy narrow-aisle reach loads.",
+      ],
+      questions: [
+        { q: "C-series side-shift hydraulics weak or leaking?", yes: "Side-shift cylinder seal — Combilift heavy use accelerates wear", no: "Different mast issue" },
+        { q: "Long-load Combi with chain stretch concerns?", yes: "Chains wear faster than counterbalance — measure more often", no: "Anchor or other" },
+        { q: "Hydraulic hose chafe visible on 4-way platform?", yes: "Complex routing wear point — re-route or replace before burst", no: "Internal hydraulic" },
+        { q: "AM Aisle Master with tilt play?", yes: "Tilt cylinder pin wear — narrow-aisle load stress accelerates", no: "Seal wear" },
+      ],
+    },
+    brakes: {
+      tendencies: [
+        "Service brake hydraulic system on C-series — long-load braking requires more capacity, wears faster.",
+        "Parking brake friction disc on AM Aisle Master — heavy use in cold storage common.",
+        "Brake fluid contamination on Combi operating outdoors — moisture ingress.",
+        "Hydrostatic deceleration calibration on hydrostatic-equipped Combi — feels weak.",
+        "Pedestrian COMBi-WR walk-behind: plug-brake contactor wear.",
+      ],
+      questions: [
+        { q: "C-series with weak service brakes under loaded long-load travel?", yes: "Service hydraulic wear — Combi-specific high-capacity needs", no: "Different fault" },
+        { q: "AM not holding on grade with load?", yes: "Parking brake friction disc — AM Aisle Master wear", no: "Different parking" },
+        { q: "Hydrostatic Combi with weak deceleration?", yes: "Hydrostatic decel calibration drift — recalibration", no: "Mechanical brake" },
+        { q: "Pedestrian COMBi-WR weak plug?", yes: "Plug-brake contactor wear — similar to other walkies", no: "Different brake fault" },
+      ],
+    },
+    transmission: {
+      tendencies: [
+        "Hydrostatic pump wear on hydrostatic C-series — long-load duty cycles wear pumps fast.",
+        "4-way drive motor wear (multiple drive motors on C-series) — first failure usually one wheel.",
+        "Charge pump pressure loss on hydrostatic — symptoms like trans slipping.",
+        "Drive motor brush wear on legacy DC Combi — slipping under load.",
+        "AC drive bearing wear on newer Combi C-series — whine before growl.",
+      ],
+      questions: [
+        { q: "Hydrostatic Combi with sluggish acceleration?", yes: "Hydrostatic pump wear — heavy long-load cycles, pressure test", no: "Different drive fault" },
+        { q: "Only one of multiple drive wheels failing on C-series?", yes: "Individual drive motor failure — Combi C-series multi-motor system", no: "System-wide drive issue" },
+        { q: "Slipping feel under load?", yes: "Charge pump pressure low on hydrostatic — Combi common", no: "Drive motor issue" },
+        { q: "AC drive with growing whine?", yes: "AC drive motor bearing — high-hour wear", no: "Different drive fault" },
+      ],
+    },
+    electrical: {
+      tendencies: [
+        "Combilift proprietary control system — codes require Combi scanner or dealer support.",
+        "Multi-wheel drive harness — complex 4-way wiring with many connectors, corrosion points.",
+        "Joystick electronics on 4-way mode select — multi-axis wear.",
+        "Cold-storage Combi with condensation in control box — moisture-related faults.",
+        "Aisle Master guidance sensors (rail or wire) — calibration drift.",
+      ],
+      questions: [
+        { q: "Code displayed on Combilift control panel?", yes: "Combi-specific scanner or dealer support required — proprietary", no: "No code path" },
+        { q: "Intermittent faults across multiple systems?", yes: "Connector corrosion in 4-way drive harness — complex wiring system", no: "Single circuit" },
+        { q: "Cold-storage Combi with random electrical faults?", yes: "Condensation in control box — common for cold storage operation", no: "Standard electrical" },
+        { q: "Aisle Master not tracking aisle?", yes: "Guidance sensor calibration drift — wire or rail guidance system", no: "Drive or steering" },
+      ],
+    },
+    overheating: {
+      tendencies: [
+        "Hydraulic oil overheat on C-series under sustained heavy long-load cycles.",
+        "Engine radiator clogging on Kubota/Perkins — Combilift cores accumulate debris.",
+        "Hydraulic cooler restriction — common high-duty Combilift failure mode.",
+        "Drive motor overheat on heavy duty 4-way C-series.",
+        "Controller heat sink fan failure on newer Combi.",
+      ],
+      questions: [
+        { q: "Hydraulic oil overheat warning on C-series?", yes: "Hydraulic cooler restriction — clean cooler", no: "Engine cooling side" },
+        { q: "Engine overheat on Kubota or Perkins?", yes: "Radiator clogging — clean core", no: "Internal flow" },
+        { q: "4-way drive motor overheat?", yes: "Heavy duty cycle exceeds rating — review application", no: "Component failure" },
+        { q: "Controller overtemp on newer Combi?", yes: "Heat sink fan failure — replace fan", no: "Different overheat" },
+      ],
+    },
+    noise: {
+      tendencies: [
+        "Hydrostatic pump whine on C-series — distinct from gear-drive whine.",
+        "Multi-motor drive groan on 4-way C-series — one motor wearing differently than others.",
+        "Side-shift cylinder noise on C-series — bearing wear in slide rails.",
+        "Engine timing chain on Kubota — tensioner wear after high hours.",
+        "Mast wheel flat spots on AM Aisle Master — clicking with lift.",
+      ],
+      questions: [
+        { q: "Hydraulic pump whine specifically on hydrostatic C-series?", yes: "Hydrostatic pump wear — Combi heavy duty cycle wear", no: "Different noise source" },
+        { q: "Drive system groan or growl from one specific wheel area?", yes: "Individual drive motor wear — 4-way C-series multi-motor", no: "System-wide" },
+        { q: "Noise from side-shift slide rails?", yes: "Slide rail bearing wear — Combi side-shift wear", no: "Cylinder seal" },
+        { q: "Cold-start rattle on Kubota engine?", yes: "Timing chain tensioner — Kubota wear pattern", no: "Different engine noise" },
+      ],
+    },
+  },
+
+  aichi: {
+    no_start: {
+      tendencies: [
+        "Platform emergency stop button held on SR/SP series — must be released before truck powers up.",
+        "Lower control vs platform control switch position — Aichi requires correct selection.",
+        "Tilt sensor fault (machine on slope) — Aichi refuses to start if tilt exceeds threshold.",
+        "Engine: Kubota diesel on SR boom lifts — fuel solenoid stuck after long sit.",
+        "Battery low-voltage lockout on SP scissor — refuses operation below threshold.",
+      ],
+      questions: [
+        { q: "Aichi SR/SP boom or scissor won't power up?", yes: "Platform e-stop, control selector position, or tilt sensor — Aichi safety circuit checklist", no: "Different fault" },
+        { q: "Tilt warning on the level indicator?", yes: "Machine on slope exceeding safe limit — Aichi tilt safety, won't operate", no: "Different lockout" },
+        { q: "Kubota diesel after long sit?", yes: "Fuel solenoid stuck — manual prime", no: "Glow or compression" },
+        { q: "Battery low warning blocking operation?", yes: "Low voltage lockout — charge battery, Aichi safety", no: "Different power issue" },
+      ],
+    },
+    steering: {
+      tendencies: [
+        "Steer cylinder rod seal on SR boom — visible weep at rod after high hours.",
+        "Hydraulic steering pump on SR21CJ — pressure loss causes heavy feel.",
+        "Tie rod and king pin wear on chassis — SR-series ground-driven steering.",
+        "Steer encoder on newer Aichi — code stored, scanner required.",
+        "Articulation steering on TZ towable boom — pivot pin wear.",
+      ],
+      questions: [
+        { q: "SR boom with oil at steer cylinder rod?", yes: "Rod seal wear — high-hour SR common", no: "Internal hydraulic" },
+        { q: "Heavy steering feel on SR21CJ?", yes: "Steering pump pressure loss — check pressure first", no: "Mechanical wear" },
+        { q: "Clunk at chassis steering on ground travel?", yes: "Tie rod or king pin wear — SR ground steering", no: "Hydraulic side" },
+        { q: "TZ towable with articulation pivot wear?", yes: "Pivot pin wear — TZ articulated tow inspection", no: "Different fault" },
+      ],
+    },
+    mast_hydraulic: {
+      tendencies: [
+        "Boom cylinder seal wear on SR boom lifts — boom drifts down under load, very common.",
+        "Slew (turret rotation) motor wear on SR — drift or jerk at rotation start.",
+        "Articulation cylinder seal on SR21CJ knuckle joint — visible weep.",
+        "Scissor pack hydraulic seal failure on SP scissor lifts — platform drops slowly.",
+        "Outrigger hydraulic seal weep on SR boom — affects setup stability.",
+      ],
+      questions: [
+        { q: "SR boom drifts down under load when held?", yes: "Boom cylinder seal — very common Aichi SR wear, prioritize", no: "Different hydraulic" },
+        { q: "Slew (turret rotation) drift or jerky start?", yes: "Slew motor wear — SR-series wear point", no: "Slew brake or control" },
+        { q: "SR21CJ knuckle joint hydraulic weep?", yes: "Articulation cylinder seal — replace seal kit", no: "Different leak source" },
+        { q: "SP scissor platform drops slowly?", yes: "Scissor pack hydraulic seal — common high-hour wear", no: "Valve check" },
+      ],
+    },
+    brakes: {
+      tendencies: [
+        "Parking brake on SR drive chassis — won't hold on slope (truck supposed to be level anyway).",
+        "Service brake hydraulic on SP scissor drive — light-duty system, fluid often neglected.",
+        "Hydrostatic deceleration on hydrostatic-drive Aichi — pedal feedback weak.",
+        "Drive motor regenerative braking on AC drive Aichi — calibration drift.",
+        "Outrigger hydraulic lockout brake — won't release until outriggers fully retracted.",
+      ],
+      questions: [
+        { q: "SR drive chassis won't hold on slope?", yes: "Parking brake disc wear — though Aichi specs level setup, common", no: "Different parking" },
+        { q: "SP scissor with weak brake feel?", yes: "Service hydraulic — fluid quality on lightly-used scissors often neglected", no: "Different brake" },
+        { q: "Hydrostatic Aichi with weak decel?", yes: "Hydrostatic decel calibration drift — recalibration", no: "Mechanical fault" },
+        { q: "Drive won't release after outrigger setup?", yes: "Outrigger lockout — must fully retract outriggers, Aichi safety", no: "Different lockout" },
+      ],
+    },
+    transmission: {
+      tendencies: [
+        "Drive motor wear on Aichi chassis — multiple wheel drive on some models, individual motor failure.",
+        "Hydrostatic pump wear on hydrostatic-drive Aichi (some SR models).",
+        "Gear case oil seal at drive flange — fluid under wheels.",
+        "Drive parameter drift in controller — jerky drive.",
+        "Slew gear wear on SR boom — turret rotation gear teeth wear.",
+      ],
+      questions: [
+        { q: "Individual wheel drive motor failing on Aichi?", yes: "Multi-motor system — one motor at a time, common Aichi pattern", no: "System-wide" },
+        { q: "Hydrostatic Aichi with sluggish drive?", yes: "Hydrostatic pump wear — pressure test first", no: "Different drive" },
+        { q: "Fluid under drive wheels?", yes: "Gear case output seal — service item", no: "Other leak" },
+        { q: "Slew rotation jerky or noisy?", yes: "Slew gear teeth wear — SR boom inspection", no: "Slew motor or brake" },
+      ],
+    },
+    electrical: {
+      tendencies: [
+        "Platform control panel fault codes on SR — Aichi proprietary code list.",
+        "Tilt sensor calibration drift on SR boom — false tilt warnings.",
+        "Joystick electronics on platform controls — multi-axis sensor wear.",
+        "Cable carrier (catenary) wire chafe on SR boom — high flex, eventual failure.",
+        "Lower controls vs platform controls selector switch wear — Aichi key switch.",
+      ],
+      questions: [
+        { q: "SR with platform code displayed?", yes: "Aichi proprietary code lookup — service manual required", no: "No code path" },
+        { q: "False tilt warnings on level ground?", yes: "Tilt sensor calibration drift — Aichi recalibration", no: "Real tilt issue" },
+        { q: "Joystick multi-axis fault on platform controls?", yes: "Joystick sensor wear — common Aichi platform control wear", no: "Different control issue" },
+        { q: "Intermittent boom faults that worsen at full extension?", yes: "Cable carrier wire chafe — Aichi high-hour wear, inspect carrier", no: "Different routing" },
+      ],
+    },
+    overheating: {
+      tendencies: [
+        "Hydraulic oil overheat on SR under sustained boom operation.",
+        "Engine radiator clogging on Kubota — common diesel engine wear.",
+        "Drive motor overheat on heavy duty cycle.",
+        "Slew motor overheat on continuous rotation tasks.",
+        "Controller heat sink fan failure on newer Aichi.",
+      ],
+      questions: [
+        { q: "Hydraulic oil overheat on SR boom?", yes: "Hydraulic cooler restriction or sustained heavy use", no: "Engine side" },
+        { q: "Kubota engine overheat?", yes: "Radiator clogging or thermostat — standard Kubota diagnostics", no: "Internal flow" },
+        { q: "Slew motor overheat after continuous rotation work?", yes: "Duty cycle exceeded — slew motor not rated for continuous rotation", no: "Component failure" },
+        { q: "Controller temp warning?", yes: "Heat sink fan failure — replace fan", no: "Different overheat" },
+      ],
+    },
+    noise: {
+      tendencies: [
+        "Boom hydraulic cylinder noise — air in hydraulic system causes erratic boom operation.",
+        "Slew gear noise on SR — turret rotation gear wear.",
+        "Drive motor bearing growl on Aichi chassis — high-hour wear.",
+        "Scissor pack hydraulic noise on SP — pump cavitation under load.",
+        "Engine timing chain on Kubota — tensioner wear after high hours.",
+      ],
+      questions: [
+        { q: "Boom moves jerky with hydraulic noise?", yes: "Air in hydraulic system — bleed system, check for suction leak", no: "Different boom fault" },
+        { q: "Slew rotation noisy?", yes: "Slew gear or motor wear — SR-series high-hour", no: "Different rotation fault" },
+        { q: "Drive wheels growling?", yes: "Drive motor bearing — high-hour Aichi", no: "Other drivetrain" },
+        { q: "Kubota engine cold-start rattle?", yes: "Timing chain tensioner — Kubota wear", no: "Different engine noise" },
       ],
     },
   },

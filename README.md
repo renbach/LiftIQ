@@ -6,8 +6,9 @@ part numbers from a tagged reference library.
 
 Built for KG Lift, covering **Toyota**, **Yale / Hyster**,
 **Mitsubishi / Unicarrier**, **Heli**, **Crown**, **Hangcha**, **Doosan**,
-**Clark**, **CAT**, **Raymond**, **Linde**, **Jungheinrich**, and **Komatsu**
-trucks.
+**Clark**, **CAT**, **Raymond**, **Linde**, **Jungheinrich**, **Komatsu**,
+**Big Joe**, **Combilift**, and **Aichi** (aerial / telehandler) — 16 brands,
+160 models.
 
 ---
 
@@ -91,9 +92,9 @@ production build and subdomain hosting.
 - [x] Adaptive desktop / ultrawide layout
 - [x] Diagnostic funnel wired into DIAG tab with cross-link to matching media
 - [x] Web-search proxy through server so no LLM key ships to the browser
-- [x] Brand coverage expanded to 13: Toyota, Yale/Hyster, Mitsubishi/Unicarrier,
+- [x] Brand coverage expanded to 16: Toyota, Yale/Hyster, Mitsubishi/Unicarrier,
       Heli, Crown, Hangcha, Doosan, Clark, CAT, Raymond, Linde, Jungheinrich,
-      Komatsu
+      Komatsu, Big Joe, Combilift, Aichi (aerial/telehandler)
 - [x] Mac mini + Cloudflare Tunnel deployment artifacts (`deploy/mac/`)
 - [ ] Ship to `liftiq.renviasciences.com` (Cloudflare account + tunnel)
 - [ ] AI-assisted tag suggestions (vision model reads data plates, part labels)
