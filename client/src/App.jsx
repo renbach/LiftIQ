@@ -2,6 +2,7 @@ import { useState } from "react";
 import { theme } from "./theme.js";
 import { useIsDesktop, useIsUltrawide } from "./lib/useViewport.js";
 import MediaTagger from "./components/MediaTagger.jsx";
+import DiagnosticFunnel from "./components/DiagnosticFunnel.jsx";
 
 const TABS = [
   { id: "diagnostics", label: "DIAG" },
@@ -113,25 +114,7 @@ export default function App() {
       {/* Content */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         {tab === "media" && <MediaTagger isDesktop={isDesktop} isUltrawide={isUltrawide} />}
-        {tab === "diagnostics" && (
-          <div style={{
-            flex: 1, display: "flex", alignItems: "center",
-            justifyContent: "center", padding: 40, minHeight: 400,
-          }}>
-            <div style={{ textAlign: "center" }}>
-              <div style={{
-                fontSize: 48, marginBottom: 16, opacity: 0.3,
-                fontFamily: "'JetBrains Mono', monospace",
-              }}>?</div>
-              <div style={{ fontSize: 14, color: theme.textDim, marginBottom: 8 }}>
-                Diagnostic Funnel
-              </div>
-              <div style={{ fontSize: 12, color: theme.textMuted, maxWidth: 320, lineHeight: 1.5 }}>
-                The branching diagnostic engine will go here. Drop in the liftiq-diagnostics.jsx prototype to activate.
-              </div>
-            </div>
-          </div>
-        )}
+        {tab === "diagnostics" && <DiagnosticFunnel isDesktop={isDesktop} isUltrawide={isUltrawide} />}
       </div>
     </div>
   );

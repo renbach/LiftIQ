@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { getDb } from "./db/index.js";
 import { LocalStorage } from "./storage/local.js";
 import { mediaRoutes } from "./routes/media.js";
+import { searchRoutes } from "./routes/search.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3001;
@@ -22,6 +23,7 @@ async function start() {
   await getDb(DB_PATH);
 
   app.use("/api/media", mediaRoutes(storage));
+  app.use("/api/search", searchRoutes());
 
   const clientDist = path.join(__dirname, "..", "..", "client", "dist");
   app.use(express.static(clientDist));

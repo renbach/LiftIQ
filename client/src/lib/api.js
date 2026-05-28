@@ -36,3 +36,18 @@ export async function deleteMedia(id) {
   const res = await fetch(`${BASE}/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Delete failed");
 }
+
+export async function runSearch({ query, brand, model }) {
+  const res = await fetch("/api/search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, brand, model }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(data.error || "Search failed");
+    err.status = res.status;
+    throw err;
+  }
+  return data;
+}
