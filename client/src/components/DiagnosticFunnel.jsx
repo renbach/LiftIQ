@@ -251,7 +251,9 @@ export default function DiagnosticFunnel({ isDesktop = false, isUltrawide = fals
               </div>
               <div style={{
                 display: "grid",
-                gridTemplateColumns: isDesktop ? "repeat(3, 1fr)" : "1fr",
+                gridTemplateColumns: isDesktop
+                  ? "repeat(auto-fit, minmax(260px, 1fr))"
+                  : "1fr",
                 gap: isDesktop ? 14 : 10,
               }}>
                 {Object.entries(DIAGNOSTIC_BRANDS).map(([key, b]) => (

@@ -18,6 +18,14 @@ export const BRANDS = {
     "FGC25N", "FGC30N", "FB16PN", "FB20PN", "FD25N",
     "FD30N", "PF50", "1F4A25U", "MPC60", "QX2-25",
   ],
+  "Heli": [
+    "CPCD25", "CPCD30", "CPCD35", "CPYD25", "CPYD30",
+    "CPD15", "CPD20", "CPD25", "CBD15", "CDD14",
+  ],
+  "Crown": [
+    "SC4500", "SC5300", "SC6000", "FC5200", "C-5",
+    "RR5700", "RM6000", "RC5500", "SP3500", "PE4500",
+  ],
 };
 
 export const SYSTEMS = [
@@ -51,6 +59,8 @@ export const DIAGNOSTIC_BRANDS = {
   toyota: { name: "Toyota", models: BRANDS["Toyota"], icon: "▲" },
   yale_hyster: { name: "Yale / Hyster", models: BRANDS["Yale / Hyster"], icon: "◆" },
   mitsubishi_unicarrier: { name: "Mitsubishi / Unicarrier", models: BRANDS["Mitsubishi / Unicarrier"], icon: "●" },
+  heli: { name: "Heli", models: BRANDS["Heli"], icon: "■" },
+  crown: { name: "Crown", models: BRANDS["Crown"], icon: "♛" },
 };
 
 export const SYMPTOM_CATEGORIES = [
@@ -443,6 +453,252 @@ export const DIAGNOSTIC_DATA = {
         { q: "Is there a buzz at specific RPM ranges?", yes: "LPG mixer/regulator vibration — check mounting and diaphragm", no: "Mechanical — engine, trans, or drivetrain" },
         { q: "Is the noise from the mast area during operation?", yes: "Chain routing contact on channels — inspect guides and routing", no: "Powerplant or drivetrain noise" },
         { q: "Does the noise get louder over time?", yes: "Progressive wear — transmission pump (check filter) or bearing", no: "Static issue — exhaust, mounting, or resonance" },
+      ],
+    },
+  },
+
+  heli: {
+    no_start: {
+      tendencies: [
+        "Fuel solenoid (lockoff) failure on CPYD LPG models — clicks but no fuel delivery.",
+        "Xinchai 490 injector pump timing drift on CPCD diesels — long crank, hard start when warm.",
+        "Seat switch / OPS connector corrosion on CPCD25/30 — Chinese-sourced connector seals fail early.",
+        "Battery main isolator switch loose on CPD electrics — intermittent power loss to controller.",
+        "Starter solenoid contact plate wear on early Heli units — cranks slow then quits.",
+      ],
+      questions: [
+        { q: "Does the dash power up with key on?", yes: "Crank or fuel delivery side", no: "Power supply — main isolator, key switch, or fuse box" },
+        { q: "Is this an LPG truck that worked yesterday and won't today?", yes: "Lockoff solenoid clicks but fails to open — common Heli LPG failure", no: "Different fault path" },
+        { q: "Diesel engine cranking but not catching?", yes: "Xinchai injection pump timing or weak lift pump — common after high hours", no: "Spark/ignition or interlock" },
+        { q: "Is the OPS / seat light on with operator seated?", yes: "Seat switch connector corrosion — reseat / replace, very common on CPCD", no: "Not interlock" },
+      ],
+    },
+    steering: {
+      tendencies: [
+        "Steer orbital (BZZ) seal weep on CPCD — visible oil under truck after sitting.",
+        "Priority valve sticking in main hydraulic block — steering goes heavy when lifting.",
+        "Steer cylinder rod pitting from outdoor storage — accelerates seal wear.",
+        "Tie rod end play on H3-series — easy to overlook, causes wandering.",
+        "Steering column lower U-joint wear on high-hour CPD electrics.",
+      ],
+      questions: [
+        { q: "Is steering heavier when lifting at the same time?", yes: "Priority valve — not giving steering circuit preference", no: "Dedicated steering issue" },
+        { q: "Any oil pooling under the front of the truck overnight?", yes: "Orbital seal weep or cylinder rod seal — Heli BZZ unit common", no: "Internal wear, no external leak" },
+        { q: "Does the truck wander on a straight line?", yes: "Tie rod ends or king pin play — H3 series check", no: "Hydraulic side of system" },
+        { q: "Is there a notchy feel through the wheel?", yes: "Column U-joint wear — high-hour CPD known issue", no: "Hydraulic — orbital or cylinder" },
+      ],
+    },
+    mast_hydraulic: {
+      tendencies: [
+        "Tilt cylinder seal failure on CPCD25/30 — mast creep forward under load.",
+        "Chain anchor bolt loosens on CPCD — fork height drifts uneven over weeks.",
+        "Mast roller wear from running dry — Heli factory grease intervals too long for dusty sites.",
+        "Hydraulic control valve detent spring weak — lever drifts back to neutral too easily.",
+        "Lift cylinder packing wear on early CPD electric reach — slow drift under load.",
+      ],
+      questions: [
+        { q: "Does the load slowly drift down when held at height?", yes: "Lift cylinder packing or valve check ball — common Heli CPD wear", no: "Speed, control, or noise issue" },
+        { q: "Does the mast tilt forward on its own under load?", yes: "Tilt cylinder seals — CPCD25/30 wear pattern", no: "Check tilt valve centering" },
+        { q: "Forks at uneven height after weeks of use?", yes: "Chain anchor bolt loosening — Heli CPCD chain anchor needs retorque check", no: "Wear or chain stretch" },
+        { q: "Is mast travel rough or chattering?", yes: "Mast rollers dry — increase grease frequency on Heli per dusty-site spec", no: "Hydraulic flow issue" },
+      ],
+    },
+    brakes: {
+      tendencies: [
+        "Master cylinder bypass on CPCD25/30 — pedal slowly sinks, common Chinese MC failure mode.",
+        "Parking brake cable adjustment maxes out on CPCD — cable stretch is severe on early Heli.",
+        "Brake drum scoring on CPD15/20 from pad contamination — squeals then grabs.",
+        "Wheel cylinder seal failure on older CPCD — external leak at wheel hub area.",
+        "Brake fluid hygroscopic absorption — Heli OEM fluid spec sensitive to humidity.",
+      ],
+      questions: [
+        { q: "Does the pedal slowly fade to the floor when held?", yes: "Master cylinder internal bypass — common Heli CPCD failure", no: "External leak or adjustment" },
+        { q: "Does the parking brake hold on an incline with load?", yes: "Service brake hydraulic focus", no: "Cable stretch — early Heli units very prone to this" },
+        { q: "Any fluid weeping at wheel cylinders?", yes: "Wheel cylinder seal failure — common on older CPCD", no: "System-wide hydraulic issue" },
+        { q: "When was brake fluid last changed?", yes: "Check for water contamination — Heli spec sensitive to moisture", no: "Flush and bleed system" },
+      ],
+    },
+    transmission: {
+      tendencies: [
+        "Powershift clutch pack wear on CPCD30/35 — hard engagement when cold, slips when hot.",
+        "Inching valve adjustment cable seizing in dusty environments — no creep control.",
+        "Directional solenoid coil burnout on CPCD — no forward or no reverse intermittent.",
+        "Torque converter input shaft seal leak — trans fluid loss with no external puddle.",
+        "Transmission oil cooler restriction on Heli IC trucks — overheats under sustained work.",
+      ],
+      questions: [
+        { q: "Is engagement hard when cold and slipping when hot?", yes: "Clutch pack wear — CPCD30/35 known wear point", no: "Different transmission fault" },
+        { q: "Is there intermittent loss of forward or reverse?", yes: "Directional solenoid coil — test resistance, common Heli failure", no: "Mechanical or hydraulic" },
+        { q: "Poor inching pedal modulation?", yes: "Inching cable seized or out of adjustment — common in dusty sites", no: "Internal hydraulic issue" },
+        { q: "Does transmission overheat under sustained load?", yes: "Cooler restriction — clean cooler core first, Heli runs small cores", no: "Internal wear — pressure test" },
+      ],
+    },
+    electrical: {
+      tendencies: [
+        "Wiring harness chafe at mast pivot on CPCD — early Heli routing doesn't account for mast travel well.",
+        "Fuse box corrosion on CPD electrics — sealing was weak on early units.",
+        "Instrument cluster failure on CPCD — backlight and segment dropouts.",
+        "Controller water intrusion on CPD electric reach trucks used in wash-down areas.",
+        "Battery discharge indicator (BDI) calibration drift on CPD — false low-charge alerts.",
+      ],
+      questions: [
+        { q: "Are the issues happening when the mast is fully raised?", yes: "Mast pivot harness chafe — Heli CPCD common, inspect at full lift", no: "Different fault location" },
+        { q: "Multiple unrelated circuits acting up?", yes: "Fuse box corrosion — CPD known issue, clean and reseal", no: "Single-circuit fault — trace component" },
+        { q: "Is this an electric truck used in wash-down or wet areas?", yes: "Controller water intrusion — check sealing, common CPD failure", no: "Standard electrical diagnostics" },
+        { q: "Does the BDI show low charge on a freshly charged battery?", yes: "BDI calibration — recalibrate per Heli service manual", no: "Charging or battery issue" },
+      ],
+    },
+    overheating: {
+      tendencies: [
+        "Small radiator core on CPCD — clogs faster than Japanese/American units, especially in lumber/recycling yards.",
+        "Thermostat stuck closed on Xinchai 490 — common failure mode, fast overheat.",
+        "Water pump bearing failure on Xinchai engines — squeal precedes overheat by weeks.",
+        "Coolant crossover gasket leak on CPCD30 — external coolant loss at block/head junction.",
+        "Fan belt slip on CPCD diesels — Heli belt tensioner spec critical, often overlooked.",
+      ],
+      questions: [
+        { q: "How fast does it overheat?", yes: "Within minutes = thermostat stuck closed or radiator severely clogged", no: "Gradual — flow/capacity issue" },
+        { q: "Is the radiator visibly clogged with debris?", yes: "Clean core — Heli runs smaller cores, especially critical in dusty sites", no: "Check thermostat, pump, fan" },
+        { q: "Any noise from the water pump area?", yes: "Water pump bearing — Xinchai 490 wear pattern, replace before failure", no: "Other cooling component" },
+        { q: "Is the fan belt tight and in good shape?", yes: "Not belt — focus on flow or capacity", no: "Belt slip — Heli tensioner spec, common cause" },
+      ],
+    },
+    noise: {
+      tendencies: [
+        "Xinchai 490 injector tick on CPCD — gets louder as injectors wear.",
+        "Drive axle bearing growl on CPCD30 — worsens under turning load.",
+        "Hydraulic pump cavitation on Heli — aerated oil from low tank or suction leak, common on cold starts.",
+        "Mast chain rattle on CPCD — Heli chain tension spec is loose-feeling; verify with chain gauge.",
+        "Exhaust manifold gasket leak on Xinchai — ticking that worsens with engine temp.",
+      ],
+      questions: [
+        { q: "Is there a ticking that matches engine RPM?", yes: "Injector wear (Xinchai 490) or exhaust manifold gasket", no: "Not engine-driven" },
+        { q: "Whining or buzzing during lift only?", yes: "Hydraulic pump cavitation — check oil level and suction line", no: "Drivetrain or engine noise" },
+        { q: "Growl under turning load?", yes: "Drive axle bearing — CPCD30 common high-hour wear", no: "Other drivetrain source" },
+        { q: "Mast chain rattle at rest height?", yes: "Chain tension — Heli spec, retension per service manual", no: "Mast roller or guide noise" },
+      ],
+    },
+  },
+
+  crown: {
+    no_start: {
+      tendencies: [
+        "Access controller (AC1/AC2/AC3) fault code stored — Crown drive system locks out until cleared.",
+        "Battery Discharge Indicator (BDI) lockout — controller refuses operation below threshold even after charge.",
+        "Key switch barrel wear on SC-series — intermittent contact internally.",
+        "P-handle / TSP throttle sensor on RC/RM stand-ups — failure presents as 'won't move' not 'won't start'.",
+        "FC5200 IC truck: GM 2.4L ignition coil failure — weak spark, hard hot start.",
+      ],
+      questions: [
+        { q: "Is this an electric Crown with a code on the display?", yes: "Pull Access controller codes — Crown OEM scanner or shorting plug procedure", no: "No code displayed — different path" },
+        { q: "Was the battery deeply discharged recently?", yes: "BDI lockout — fully charge AND verify charger reset state", no: "Not BDI related" },
+        { q: "Is this a stand-up (RC/RM) refusing to drive when operator presents?", yes: "P-handle/TSP throttle sensor or operator presence — common Crown wear", no: "Different interlock or fault" },
+        { q: "Is this an FC5200 IC with hard hot start?", yes: "Ignition coil weakness — GM 2.4L failure mode", no: "Not ignition coil" },
+      ],
+    },
+    steering: {
+      tendencies: [
+        "AC steer motor encoder fault on SC-series — drift in steering wheel-to-tire correspondence.",
+        "Drive unit hex coupling wear on RR reach trucks — clunk and slop at the wheel.",
+        "Tie rod end wear on RC stand-up — clunking on direction reversal.",
+        "Steer encoder coupling shear pin failure — full loss of steering response, code stored.",
+        "Hydraulic steering on FC5200 IC: orbital wear, common after 6000 hours.",
+      ],
+      questions: [
+        { q: "Is this an electric Crown with a steering fault code?", yes: "Steer encoder or encoder coupling — Crown known wear point", no: "Mechanical or hydraulic fault" },
+        { q: "Is there clunk at the steer wheel during reversal?", yes: "Tie rod ends (RC) or hex coupling (RR) — inspect for play", no: "Other source" },
+        { q: "Does the steering wheel angle not match the tire angle?", yes: "Steer encoder calibration drift — Crown recalibration procedure", no: "Mechanical wear" },
+        { q: "Is this an FC5200 IC truck with heavy steering?", yes: "Hydraulic orbital wear — FC5200 6000hr+ common", no: "Electric truck — encoder side" },
+      ],
+    },
+    mast_hydraulic: {
+      tendencies: [
+        "RR reach truck lift chain stretch — fork tip-down condition; chain replacement per Crown spec.",
+        "Mast scanner / load wheel sensor fault on RR — locks out at certain heights.",
+        "Free-lift cylinder seal failure on RR5700 — inner stage drops slowly under load.",
+        "Hydraulic hose chafe at mast carriage on RR — sudden burst risk under high lift.",
+        "Joystick lift sensor wear on SP order picker — uncommanded lift creep.",
+      ],
+      questions: [
+        { q: "Is this an RR reach with forks tipping down under no load?", yes: "Lift chain stretch — measure per Crown chain spec, replace if over limit", no: "Different mast issue" },
+        { q: "Does the truck stop lifting at a specific height?", yes: "Mast scanner / load sensor — RR known fault location", no: "Hydraulic flow or pressure" },
+        { q: "Does the inner stage on RR drop slowly when held?", yes: "Free-lift cylinder seal — RR5700 wear pattern", no: "Main lift cylinder or valve" },
+        { q: "Order picker with creeping lift command?", yes: "Joystick lift sensor wear — SP3500/4500 common", no: "Other lift control issue" },
+      ],
+    },
+    brakes: {
+      tendencies: [
+        "Regen brake calibration drift on SC-series — controller-controlled braking feels weak.",
+        "Auto-park brake fault on RC stand-up — truck won't release after operator dismount/remount.",
+        "Service brake by-wire sensor fault on SC6000 — pedal works but no braking response.",
+        "FC5200 IC: wheel cylinder corrosion from acid wash environments.",
+        "Parking brake friction disc wear on RR — won't hold on grade with load.",
+      ],
+      questions: [
+        { q: "Is this an electric Crown with weak braking feel?", yes: "Regen calibration drift — Crown recalibration procedure, controller-side", no: "Different braking system" },
+        { q: "Is this an RC stand-up that won't release the parking brake?", yes: "Auto-park fault — check operator presence, sensor wiring, controller code", no: "Standard parking brake" },
+        { q: "Brake pedal feels normal but no braking happens?", yes: "By-wire sensor fault — SC6000 known issue, safety critical", no: "Hydraulic or mechanical" },
+        { q: "RR reach not holding on grade with load?", yes: "Parking brake friction disc — RR wear after high hours", no: "Service brake side" },
+      ],
+    },
+    transmission: {
+      tendencies: [
+        "Drive motor bearing wear on SC AC drive — whine becomes growl, then code.",
+        "Drive unit gear case oil seal leak — pink oil on floor under wheels.",
+        "Hex coupling spline wear between motor and drive — clunk on direction change.",
+        "FC5200 IC powershift: clutch pack wear, harsh engagement when cold.",
+        "Traction control parameter drift in Access controller — laggy or jerky acceleration.",
+      ],
+      questions: [
+        { q: "Is this an electric Crown with whining from drive wheels?", yes: "Drive motor bearing — replace before total failure, common SC wear", no: "Different drive fault" },
+        { q: "Pink/red fluid under the truck near the drive wheels?", yes: "Drive unit oil seal leak — refill and replace seal, Crown service item", no: "Other fluid source" },
+        { q: "Clunk on F-R direction change at low speed?", yes: "Hex coupling spline wear — inspect and replace if scored", no: "Other drivetrain source" },
+        { q: "FC5200 with harsh cold engagement?", yes: "Powershift clutch pack wear — same playbook as other IC powershifts", no: "Not IC clutch issue" },
+      ],
+    },
+    electrical: {
+      tendencies: [
+        "Access controller (AC1/AC2/AC3) hidden codes — common across SC/FC/RR series, scanner required.",
+        "InfoLink wireless module battery dead — fleet tracking dropouts, easy fix often missed.",
+        "Joystick sensor wear on SP order picker — multiple axis faults from one stick.",
+        "Harness chafe at mast pivot on RR reach trucks — Crown routing prone to this on high-hour units.",
+        "FC5200 IC: GM 2.4L throttle position sensor failure — surging and stalling.",
+      ],
+      questions: [
+        { q: "Is there an Access controller code displayed?", yes: "Pull code with Crown OEM scanner — code lookup is the path forward", no: "No code — different fault path" },
+        { q: "InfoLink fleet tracking dropping out?", yes: "InfoLink module battery — easy fix, check first before deeper diagnostics", no: "Not InfoLink related" },
+        { q: "Order picker with multi-axis joystick faults?", yes: "Joystick sensor wear — SP order picker known failure, full replacement", no: "Other control issue" },
+        { q: "Does the issue appear when mast is fully raised?", yes: "Mast pivot harness chafe — RR reach truck known wear", no: "Different routing or component" },
+      ],
+    },
+    overheating: {
+      tendencies: [
+        "Traction motor overheat on SC under heavy duty cycle — duty rating exceeded by application.",
+        "Controller heat sink fan failure on Access controller — drive cuts back power as temp rises.",
+        "FC5200 IC: GM 2.4L radiator clogging, thermostat housing leak — same as other LP units.",
+        "Lift pump motor overheat on RR — repeated lift cycles without cool-down trigger thermal cut.",
+        "Battery overheat on SC — wrong charging profile or undersized battery for duty cycle.",
+      ],
+      questions: [
+        { q: "Is this an electric truck running heavy duty cycle?", yes: "Likely duty rating exceeded — traction motor or lift pump thermal cutback", no: "Single-component failure" },
+        { q: "Controller code for overtemp?", yes: "Heat sink fan or airflow blockage — check controller fan first", no: "Different overheat source" },
+        { q: "Is the battery itself hot to the touch after charging?", yes: "Charging profile mismatch — verify charger settings vs battery spec", no: "Not battery thermal issue" },
+        { q: "FC5200 IC with classic overheat symptoms?", yes: "Standard IC overheat diagnostics — radiator, thermostat, pump", no: "Electric truck — different system" },
+      ],
+    },
+    noise: {
+      tendencies: [
+        "Drive motor bearing growl on SC AC drive — first wear point after thousands of hours.",
+        "Lift pump motor whine on RR reach truck — bearing wear amplified by hydraulic load.",
+        "Mast load wheel flat spots on RR — jerky lift accompanied by clicking.",
+        "Hex coupling rattle on SC drive units — clunk during direction change at low speed.",
+        "FC5200 IC: timing chain rattle on cold start (GM 2.4L) — tensioner wear.",
+      ],
+      questions: [
+        { q: "Is this an electric Crown with growling drive wheels?", yes: "Drive motor bearing — replace before motor damage, common SC wear", no: "Other drivetrain noise" },
+        { q: "Whine during lift only on RR?", yes: "Lift pump motor bearing — wear amplified under load", no: "Mast-side noise" },
+        { q: "Clicking accompanying jerky lift on RR?", yes: "Mast load wheel flat spots — inspect and replace wheels", no: "Different mast fault" },
+        { q: "FC5200 IC with cold-start rattle that goes away warm?", yes: "Timing chain tensioner — GM 2.4L wear, same as other IC trucks", no: "Not timing chain" },
       ],
     },
   },
