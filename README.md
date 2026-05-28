@@ -4,8 +4,10 @@ A field diagnostic tool for forklift mechanics. Takes a broad symptom, narrows i
 down using model-specific failure tendencies, and surfaces real field photos and
 part numbers from a tagged reference library.
 
-Built for KG Lift, covering **Toyota**, **Yale / Hyster**, and
-**Mitsubishi / Unicarrier** trucks.
+Built for KG Lift, covering **Toyota**, **Yale / Hyster**,
+**Mitsubishi / Unicarrier**, **Heli**, **Crown**, **Hangcha**, **Doosan**,
+**Clark**, **CAT**, **Raymond**, **Linde**, **Jungheinrich**, and **Komatsu**
+trucks.
 
 ---
 
@@ -82,9 +84,19 @@ production build and subdomain hosting.
 
 - [x] Diagnostic funnel prototype (3 brands, 8 symptom categories)
 - [x] Media tagging prototype with persistent metadata
-- [ ] Wire media library into diagnostic results (surface matching photos)
-- [ ] Backend: media upload + tag CRUD + object storage
-- [ ] Bulk import from Google Photos / camera roll export
+- [x] Backend: media upload + tag CRUD + object storage (local disk via
+      StorageAdapter, swap-in S3/R2 later)
+- [x] Bulk import from Google Photos export (`server/src/scripts/bulk-import.js`)
+- [x] Kind taxonomy (forklift / tool / reference / other) and inline tag editor
+- [x] Adaptive desktop / ultrawide layout
+- [x] Diagnostic funnel wired into DIAG tab with cross-link to matching media
+- [x] Web-search proxy through server so no LLM key ships to the browser
+- [x] Brand coverage expanded to 13: Toyota, Yale/Hyster, Mitsubishi/Unicarrier,
+      Heli, Crown, Hangcha, Doosan, Clark, CAT, Raymond, Linde, Jungheinrich,
+      Komatsu
+- [x] Mac mini + Cloudflare Tunnel deployment artifacts (`deploy/mac/`)
+- [ ] Ship to `liftiq.renviasciences.com` (Cloudflare account + tunnel)
 - [ ] AI-assisted tag suggestions (vision model reads data plates, part labels)
 - [ ] Mechanic contributions — let the field add failures back into the DB
 - [ ] Part-number cross-reference (OEM ↔ aftermarket)
+- [ ] Video support in media library (currently skipped at import)

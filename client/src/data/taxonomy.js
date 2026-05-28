@@ -38,6 +38,26 @@ export const BRANDS = {
     "C25", "C30", "C35", "CGC25", "CGP25",
     "GTX25", "ECX20", "ECX25", "WPX45", "NPX17",
   ],
+  "CAT": [
+    "DP25N", "DP30N", "GP25N", "GP30N", "2EC25",
+    "2EC30", "EC25LN2", "NR16N2", "NPF20N", "NSP20N",
+  ],
+  "Raymond": [
+    "4250", "4400", "5400", "5500", "7400",
+    "7720", "8210", "8410", "8910", "9700",
+  ],
+  "Linde": [
+    "H25", "H30", "H35", "E25", "E30",
+    "E35", "R14", "R16", "T20", "N20",
+  ],
+  "Jungheinrich": [
+    "EFG216", "EFG220", "ETV214", "ETV216", "ETM216",
+    "EKS210", "ESE220", "EJC212", "EZS350", "AME13",
+  ],
+  "Komatsu": [
+    "FG25T", "FG30T", "FD25T", "FD30T", "FD40T",
+    "FB20", "FB25", "FB30", "FB16RW", "FB15S",
+  ],
 };
 
 export const SYSTEMS = [
@@ -76,6 +96,11 @@ export const DIAGNOSTIC_BRANDS = {
   hangcha: { name: "Hangcha", models: BRANDS["Hangcha"], icon: "▽" },
   doosan: { name: "Doosan", models: BRANDS["Doosan"], icon: "◇" },
   clark: { name: "Clark", models: BRANDS["Clark"], icon: "✦" },
+  cat: { name: "CAT", models: BRANDS["CAT"], icon: "▰" },
+  raymond: { name: "Raymond", models: BRANDS["Raymond"], icon: "►" },
+  linde: { name: "Linde", models: BRANDS["Linde"], icon: "◐" },
+  jungheinrich: { name: "Jungheinrich", models: BRANDS["Jungheinrich"], icon: "✚" },
+  komatsu: { name: "Komatsu", models: BRANDS["Komatsu"], icon: "◎" },
 };
 
 export const SYMPTOM_CATEGORIES = [
@@ -1083,6 +1108,621 @@ export const DIAGNOSTIC_DATA = {
         { q: "Whine from trans area, getting louder?", yes: "Input bearing wear — C-series legacy, schedule trans service", no: "Pump or other" },
         { q: "Growl under turning load?", yes: "Drive axle bearing — legacy C25/C30 common high-hour", no: "Other drivetrain" },
         { q: "Ticking that worsens with engine temperature?", yes: "Exhaust manifold leak — GM 2.4L stud corrosion, common Clark", no: "Internal engine" },
+      ],
+    },
+  },
+
+  cat: {
+    no_start: {
+      tendencies: [
+        "Seat switch wiring on DP/GP-N series — MCFA platform-shared issue with Mitsubishi FGC-N, connector corrosion.",
+        "GM 4.3L LPG (some 2EC/GP models): ignition module heat-soak failure — won't restart when hot.",
+        "Mitsubishi S4S diesel on DP30N: fuel solenoid stuck after long sit — needs manual prime.",
+        "2EC electric: BDI lockout below 20% — refuses operation until full charge cycle complete.",
+        "Key barrel internal wear on older DP-N — turn and jiggle behavior.",
+      ],
+      questions: [
+        { q: "Dash powers up with key?", yes: "Crank or fuel side", no: "Key barrel, main power, or BDI lockout on 2EC" },
+        { q: "GM 4.3L LPG hot start refusal?", yes: "Ignition module heat soak — let cool, hot restart fails on CAT LP", no: "Different LP fault" },
+        { q: "S4S diesel after long sit — won't start?", yes: "Fuel solenoid hung up — manual prime the system", no: "Glow plug or compression side" },
+        { q: "Is this a 2EC electric with full battery refusing operation?", yes: "BDI lockout state — full charge cycle and reset, MCFA quirk", no: "Different electric fault" },
+      ],
+    },
+    steering: {
+      tendencies: [
+        "Hydraulic orbital wear on DP/GP-N — same BZZ-style unit as Mitsubishi, similar wear curve.",
+        "Steer cylinder rod seal on DP30N — visible weep at rod, common high-hour.",
+        "Tie rod end play on GP25N — wandering before clunk presents.",
+        "Priority valve sticking on cold mornings — 2EC electric, valve spool issue.",
+        "Steer encoder fault on NR16N2 reach — code stored in controller.",
+      ],
+      questions: [
+        { q: "Spongy or delayed steering feel?", yes: "Orbital wear — DP/GP-N shares Mitsubishi wear pattern", no: "Mechanical or supply side" },
+        { q: "Visible oil at steer cylinder rod?", yes: "Rod seal — DP30N common after high hours", no: "Internal hydraulic" },
+        { q: "Truck wanders on a straight line?", yes: "Tie rod ends — GP25N inspection point", no: "Hydraulic or alignment" },
+        { q: "NR16N2 reach with steering code?", yes: "Steer encoder fault — pull code with MCFA scanner", no: "Hydraulic side on reach" },
+      ],
+    },
+    mast_hydraulic: {
+      tendencies: [
+        "Lift cylinder seal wear on DP30N — fork drift under load around 6000 hours.",
+        "Tilt cylinder seal failure on GP25N — mast tilt creep, common MCFA platform wear.",
+        "Mast chain stretch on DP25N — uneven fork height after years of heavy duty.",
+        "Hydraulic control valve spool sticking on 2EC cold starts — warms out, intermittent.",
+        "Sideshift cylinder leak on integrated carriage models — common service item.",
+      ],
+      questions: [
+        { q: "Load drifts down when held?", yes: "Lift cylinder seal — DP30N typical wear after 6k hours", no: "Different mast issue" },
+        { q: "Mast tilts forward on its own under load?", yes: "Tilt cylinder seals — GP25N MCFA-shared wear", no: "Valve centering check" },
+        { q: "Forks uneven after long use?", yes: "Chain stretch — measure and replace by gauge", no: "Anchor or pin issue" },
+        { q: "Sideshift drifting or leaking?", yes: "Sideshift cylinder seal kit — common CAT service", no: "Main mast circuit" },
+      ],
+    },
+    brakes: {
+      tendencies: [
+        "Master cylinder bypass on DP/GP-N — pedal slowly fades, shared MCFA platform issue.",
+        "Wet disc brake wear inside trans on powershift CAT — requires trans pull.",
+        "Parking brake cable stretch on DP30N — adjuster runs out of travel.",
+        "Brake booster vacuum line crack on GP25N LP — hard pedal.",
+        "2EC electric: regen brake calibration drift — feels weak.",
+      ],
+      questions: [
+        { q: "Pedal fades to floor when held?", yes: "Master cylinder internal bypass — DP/GP-N common", no: "External or shoe issue" },
+        { q: "Powershift CAT with weak service brakes?", yes: "Wet disc wear — trans removal required", no: "External system" },
+        { q: "Parking brake adjuster maxed?", yes: "Cable stretch — DP30N replace", no: "Mechanism issue" },
+        { q: "2EC with weak braking under controller?", yes: "Regen calibration drift — recalibration procedure", no: "Different brake fault" },
+      ],
+    },
+    transmission: {
+      tendencies: [
+        "Powershift clutch pack wear on DP30N — harsh engagement when warm.",
+        "Inching valve adjustment drift on GP25N — poor creep control.",
+        "Trans cooler restriction on DP-N — same as Mitsubishi FGC, MCFA platform.",
+        "Directional solenoid coil failure on DP/GP-N — intermittent F or R.",
+        "2EC electric: drive motor bearing growl after high hours.",
+      ],
+      questions: [
+        { q: "Hard engagement when warm?", yes: "Clutch pack wear — DP30N powershift, common CAT", no: "Cold engagement is different" },
+        { q: "F or R intermittently lost?", yes: "Directional solenoid coil — DP/GP-N coil drift", no: "Mechanical issue" },
+        { q: "Trans overheats during sustained work?", yes: "Cooler restriction — DP-N shared issue with Mitsubishi", no: "Internal — pressure test" },
+        { q: "2EC drive wheels making growling noise?", yes: "Drive motor bearing — replace before failure cascade", no: "Other drive source" },
+      ],
+    },
+    electrical: {
+      tendencies: [
+        "ECU connector corrosion on DP/GP-N — shared with Mitsubishi FGC-N, MCFA platform.",
+        "Instrument cluster failure on older DP25N — dead segments.",
+        "Harness chafe near mast pivot on GP30N — shared routing weakness.",
+        "2EC controller error codes — MCFA scanner required.",
+        "Throttle position sensor on GM 4.3L LPG — surging and dead spots.",
+      ],
+      questions: [
+        { q: "Intermittent codes that come and go?", yes: "ECU connector corrosion — DP/GP-N known, clean and reseal", no: "Consistent fault" },
+        { q: "Dash backlight failed or segments missing?", yes: "Cluster failure — older DP25N common, replace cluster", no: "Sender issue" },
+        { q: "Issues appearing when mast is raised?", yes: "Mast pivot harness chafe — GP30N MCFA routing", no: "Different fault location" },
+        { q: "GM 4.3L LPG engine surging?", yes: "TPS wear — replace, common GM 4.3L fault", no: "Different drivability" },
+      ],
+    },
+    overheating: {
+      tendencies: [
+        "Radiator clogging on DP-N — shared core sizing with Mitsubishi, accumulates dust.",
+        "Mitsubishi S4S thermostat stuck closed on DP30N — rapid overheat.",
+        "Water pump weep on S4S diesel — drip from weep hole.",
+        "Cooling fan clutch failure on GP25N — fan spins but moves no air.",
+        "2EC electric: traction motor overheat under heavy duty cycle.",
+      ],
+      questions: [
+        { q: "How fast does it overheat?", yes: "Within minutes = thermostat stuck or severe blockage", no: "Gradual — flow or capacity" },
+        { q: "Radiator visibly clogged?", yes: "Clean core — MCFA cores accumulate over time", no: "Internal flow" },
+        { q: "Drip from water pump weep hole?", yes: "Pump seal failing — S4S common, replace pump", no: "Other coolant leak" },
+        { q: "2EC under heavy duty cycle, motor overheat?", yes: "Application exceeds duty rating — review usage pattern", no: "Component failure" },
+      ],
+    },
+    noise: {
+      tendencies: [
+        "S4S timing chain tensioner wear on DP30N — cold-start rattle.",
+        "Drive axle bearing growl on DP25N — high-hour wear.",
+        "Hydraulic pump cavitation on cold starts — common CAT IC trucks.",
+        "Mast chain slap on DP-N — tension spec critical, MCFA-shared.",
+        "Exhaust manifold gasket leak on S4S — ticking that worsens with temp.",
+      ],
+      questions: [
+        { q: "Cold-start rattle that goes away warm?", yes: "Timing chain tensioner — S4S diesel common", no: "Not timing chain" },
+        { q: "Growl under turning load?", yes: "Drive axle bearing — DP25N high-hour wear", no: "Other drivetrain" },
+        { q: "Whine during cold-start lift?", yes: "Pump cavitation — aerated oil, check level first", no: "Bearing or pump failure" },
+        { q: "Ticking that worsens with engine heat?", yes: "Exhaust manifold gasket — S4S common, replace gasket", no: "Internal engine" },
+      ],
+    },
+  },
+
+  raymond: {
+    no_start: {
+      tendencies: [
+        "Drive motor brush wear on legacy 4250/4400 reach — won't move, looks like 'won't start'.",
+        "Battery connector pin arcing on 5500/7400 — high resistance, controller refuses operation.",
+        "Operator presence sensor failure on 8210 walkie pallet — won't power up.",
+        "ACR controller fault code on newer 4400 — Raymond proprietary scanner required.",
+        "Key switch / OPS pendant wear on 9700 order picker — intermittent power.",
+      ],
+      questions: [
+        { q: "Is this a reach truck (4250/4400) that won't drive?", yes: "Drive motor brushes (DC) or bearings (AC) — Raymond reach common", no: "Different 'won't move' fault" },
+        { q: "Battery connector hot or pitted?", yes: "Connector pin arcing — high resistance, 5500/7400 known", no: "Connector good — different power issue" },
+        { q: "Walkie pallet (8210) with no power-up?", yes: "Operator presence sensor or tiller switch — Raymond walkie wear", no: "Different fault" },
+        { q: "Newer 4400 reach with display fault code?", yes: "ACR controller code lookup — Raymond ACT/scanner required", no: "No code path" },
+      ],
+    },
+    steering: {
+      tendencies: [
+        "Steer encoder on 7720 swing-reach — proprietary swing system, requires Raymond scanner.",
+        "Tie rod end wear on 5400/5500 sit-down — clunking and wandering.",
+        "Steer motor brush wear on legacy DC-drive Raymond — heavy steering feel.",
+        "Hex coupling wear between steer motor and drive on newer AC Raymond reach.",
+        "Power steering hydraulic seal weep on 7400 stand-up.",
+      ],
+      questions: [
+        { q: "Is this a 7720 swing-reach with steering fault?", yes: "Swing system encoder — Raymond proprietary, scanner needed", no: "Standard steering path" },
+        { q: "Heavy steering on legacy Raymond DC?", yes: "Steer motor brush wear — replace brushes", no: "Hydraulic side" },
+        { q: "Clunk at steer wheel on direction change?", yes: "Hex coupling or tie rod end — depends on model", no: "Internal issue" },
+        { q: "Oil weep at 7400 steer cylinder area?", yes: "Power steering hydraulic seal — Raymond stand-up common", no: "Other source" },
+      ],
+    },
+    mast_hydraulic: {
+      tendencies: [
+        "Lift chain stretch on 4250 reach — fork tip-down, replace by Raymond chain gauge spec.",
+        "Mast scanner / load wheel sensor on 4400 — locks out at certain heights, code stored.",
+        "Free-lift cylinder seal failure on 4250/4400 — inner stage drops under load.",
+        "Hydraulic hose chafe at mast carriage on reach trucks — burst risk under high lift.",
+        "Lift pump motor brush wear on legacy DC Raymond — slow lift, eventually fails.",
+      ],
+      questions: [
+        { q: "Reach truck (4250/4400) with forks tipping down?", yes: "Lift chain stretch — measure with Raymond chain gauge", no: "Different mast issue" },
+        { q: "Truck stops lifting at certain height?", yes: "Mast scanner/load sensor — known Raymond fault location", no: "Hydraulic flow or pressure" },
+        { q: "Inner stage of reach drops slowly?", yes: "Free-lift cylinder seal — 4250/4400 wear pattern", no: "Main lift or valve" },
+        { q: "Legacy Raymond with slow lift speed?", yes: "Lift pump motor brushes worn — DC drive issue", no: "Hydraulic flow or pump" },
+      ],
+    },
+    brakes: {
+      tendencies: [
+        "Regen brake calibration drift on AC-drive Raymond — weak braking feel.",
+        "Parking brake disc wear on 4400 reach — won't hold on grade with load.",
+        "Service brake by-wire sensor on 5500 sit-down — pedal works but no response.",
+        "Brake pedal return spring on 7400 stand-up — pedal sticks down.",
+        "Walkie pallet (8210) plug-brake contactor wear — weak plug stopping.",
+      ],
+      questions: [
+        { q: "AC-drive Raymond with weak braking feel?", yes: "Regen calibration drift — Raymond recalibration procedure", no: "Mechanical or hydraulic" },
+        { q: "Reach (4400) not holding on incline with load?", yes: "Parking brake friction disc — wear after high hours", no: "Different parking brake fault" },
+        { q: "Brake pedal feels normal but no slowing?", yes: "By-wire sensor — 5500 safety-critical fault", no: "Mechanical or hydraulic" },
+        { q: "Walkie pallet weak plug brake?", yes: "Plug-brake contactor wear — 8210 known service item", no: "Different brake system" },
+      ],
+    },
+    transmission: {
+      tendencies: [
+        "Drive motor brush wear on legacy DC Raymond — slipping or no drive.",
+        "AC drive bearing wear on newer 4400 — whine progressing to growl.",
+        "Hex coupling between drive motor and gearbox — clunk on direction change.",
+        "Gear case oil leak at output seal on 5500 — pink/red oil under wheels.",
+        "Drive traction control parameter drift in ACR — jerky or laggy starts.",
+      ],
+      questions: [
+        { q: "Legacy DC Raymond with slipping or no drive?", yes: "Drive motor brushes — replace before commutator damage", no: "Different drive fault" },
+        { q: "Whining from drive wheels, getting louder?", yes: "AC drive motor bearing — 4400 wear pattern", no: "Other source" },
+        { q: "Clunk on F/R direction change?", yes: "Hex coupling spline wear — Raymond drive system", no: "Other drivetrain" },
+        { q: "Pink fluid under truck near drive wheels?", yes: "Gear case output seal leak — 5500 known service item", no: "Other leak source" },
+      ],
+    },
+    electrical: {
+      tendencies: [
+        "ACR controller fault codes on 4400/9700 — Raymond proprietary scanner standard.",
+        "iWarehouse fleet module battery dead on networked trucks — easy fix often missed.",
+        "Joystick / pendant sensor wear on 9700 order picker.",
+        "Harness chafe at mast pivot on reach trucks — Raymond routing prone to this.",
+        "Battery state-of-charge calibration drift on newer Raymond — false low warnings.",
+      ],
+      questions: [
+        { q: "ACR controller code on display?", yes: "Raymond scanner code lookup — proprietary procedure", no: "No code path" },
+        { q: "iWarehouse fleet tracking dropping out?", yes: "iWarehouse module battery — easy fix, check first", no: "Network or controller" },
+        { q: "Order picker with multi-axis joystick fault?", yes: "Joystick sensor wear — 9700 known wear, replace stick", no: "Different control fault" },
+        { q: "Faults when mast is fully raised?", yes: "Harness chafe at mast pivot — common reach truck wear", no: "Different routing" },
+      ],
+    },
+    overheating: {
+      tendencies: [
+        "Traction motor overheat on Raymond under heavy duty cycle — duty rating issue.",
+        "Controller heat sink fan failure — drive cuts back power.",
+        "Lift pump motor overheat on 4400 — repeated lift cycles trigger thermal cut.",
+        "Battery overheat from wrong charging profile on newer Raymond.",
+        "Drive motor commutator/brush heat on legacy DC — needs brush inspection.",
+      ],
+      questions: [
+        { q: "Heavy-duty cycle and motor overheat warnings?", yes: "Duty rating exceeded — review application", no: "Single component failure" },
+        { q: "Controller overtemp code?", yes: "Heat sink fan or airflow blockage — check fan first", no: "Different overheat" },
+        { q: "Battery hot to touch after charging?", yes: "Charging profile mismatch — verify charger vs battery spec", no: "Not battery thermal" },
+        { q: "Legacy DC drive smell or smoke under load?", yes: "Brush/commutator overheat — inspect immediately", no: "Other thermal source" },
+      ],
+    },
+    noise: {
+      tendencies: [
+        "Drive motor bearing growl on AC Raymond reach — common after 8000hr.",
+        "Lift pump motor whine on 4400 — bearing wear amplified by load.",
+        "Mast wheel flat spots on 4250/4400 — clicking accompanying lift.",
+        "Hex coupling rattle on Raymond drive — direction change clunk.",
+        "Battery cell venting hiss on overcharged units — safety issue, investigate.",
+      ],
+      questions: [
+        { q: "Drive wheels growling under load?", yes: "Drive motor bearing — AC Raymond after 8000hr", no: "Other drivetrain" },
+        { q: "Whine during lift only?", yes: "Lift pump motor bearing — 4400 wear", no: "Mast-side noise" },
+        { q: "Clicking accompanying jerky lift?", yes: "Mast wheel flat spots — replace wheels", no: "Different mast fault" },
+        { q: "Hiss from battery compartment?", yes: "Battery cell venting — overcharge or cell failure, safety critical", no: "Other noise source" },
+      ],
+    },
+  },
+
+  linde: {
+    no_start: {
+      tendencies: [
+        "Hydrostatic system cold-start: pump needs to build pressure before drive engages — Linde signature behavior.",
+        "Joystick neutral switch fault — Linde safety circuit refuses crank if not in neutral.",
+        "Deutz diesel on H25/H30: fuel solenoid stuck after long sit.",
+        "VW industrial engine: glow plug failure causing no-start cold.",
+        "LindeID operator card not recognized on newer trucks — fleet management lockout.",
+      ],
+      questions: [
+        { q: "Engine cranks but no drive engagement?", yes: "Hydrostatic pressure issue — pump pressure check first, Linde-specific", no: "Different drive fault" },
+        { q: "Won't crank at all?", yes: "Neutral switch or LindeID card — safety circuit refuses start", no: "Power supply issue" },
+        { q: "Deutz diesel after long sit, hard start?", yes: "Fuel solenoid stuck — prime and test", no: "Glow plug or compression" },
+        { q: "Cold-only hard start on VW engine?", yes: "Glow plug failure — common VW industrial wear", no: "Fuel or compression" },
+      ],
+    },
+    steering: {
+      tendencies: [
+        "Hydrostatic steering integrated with main hydraulic — different from competitor orbital systems.",
+        "Steer cylinder rod seal weep on H-series — visible oil at rod.",
+        "Tie rod end wear on H30/H35 — wandering before clunk.",
+        "Steer flow divider issue on E-series electric — heavy steering under simultaneous lift.",
+        "LindePulse steer angle sensor on newer trucks — fault code stored.",
+      ],
+      questions: [
+        { q: "Spongy steering or delayed response?", yes: "Hydrostatic system pressure or steer flow priority", no: "Mechanical wear" },
+        { q: "Oil at steer cylinder rod?", yes: "Rod seal wear — H-series typical", no: "Internal hydraulic" },
+        { q: "Wandering on straight line?", yes: "Tie rod ends — H30/H35 inspection point", no: "Hydraulic side" },
+        { q: "Newer Linde with steering angle code?", yes: "Steer angle sensor — pull code with LindePulse diagnostic", no: "Mechanical or hydraulic" },
+      ],
+    },
+    mast_hydraulic: {
+      tendencies: [
+        "Lift cylinder packing wear on H30/H35 — drift under load.",
+        "Tilt cylinder seal failure on E25/E30 — mast creep under load.",
+        "Mast chain stretch on H-series — uneven fork height after long use.",
+        "Reach cylinder seal on R14/R16 reach — visible oil at extension.",
+        "Hydraulic valve bank spool wear on newer Linde — lever drift.",
+      ],
+      questions: [
+        { q: "Load drifts down when held?", yes: "Lift cylinder packing — H30/H35 high-hour wear", no: "Different mast issue" },
+        { q: "Mast tilts forward under load?", yes: "Tilt cylinder seals — E25/E30 common wear", no: "Valve centering check" },
+        { q: "Reach truck (R14/R16) with hydraulic leak at extension?", yes: "Reach cylinder seal — Linde reach service item", no: "Different reach hydraulic" },
+        { q: "Lever drifting back to center?", yes: "Valve spool wear — newer Linde valve bank rebuild", no: "Spring or linkage" },
+      ],
+    },
+    brakes: {
+      tendencies: [
+        "Hydrostatic deceleration controls service braking on Linde — relies on system pressure, different feel.",
+        "Parking brake disc wear on H-series — won't hold on grade with load.",
+        "Service brake by-wire sensor on newer E-series — pedal feedback issue.",
+        "Brake pedal position sensor drift — hydrostatic decel modulation feels wrong.",
+        "Trailer brake fitting leak on Linde tow tractors (rare in NA fleets).",
+      ],
+      questions: [
+        { q: "Weak braking feel on hydrostatic Linde?", yes: "Brake pedal position sensor or system pressure — Linde-specific diagnosis", no: "Mechanical brake fault" },
+        { q: "Not holding on grade with load?", yes: "Parking brake disc wear — H-series wear", no: "Different parking system" },
+        { q: "Pedal works normally but truck barely slows?", yes: "By-wire sensor or hydrostatic decel calibration — Linde recalibration", no: "Mechanical fault" },
+        { q: "Inconsistent braking modulation?", yes: "Pedal position sensor drift — recalibrate or replace", no: "Different brake system" },
+      ],
+    },
+    transmission: {
+      tendencies: [
+        "Hydrostatic pump wear on H-series — Linde signature wear point, expensive replacement.",
+        "Charge pump pressure loss — symptoms feel like trans slipping but hydrostatic.",
+        "Drive motor bearing on hydrostatic — distinct from pump wear.",
+        "E-series AC drive motor bearing wear — whine before growl.",
+        "Hydrostatic relief valve setting drift — sluggish acceleration.",
+      ],
+      questions: [
+        { q: "H-series with sluggish acceleration?", yes: "Hydrostatic pump wear or relief drift — pressure test first", no: "Different powertrain" },
+        { q: "Slipping feel under load on hydrostatic?", yes: "Charge pump pressure low — check first, common Linde", no: "Drive motor issue" },
+        { q: "E-series with drive whine progressing?", yes: "AC drive motor bearing — replace before failure", no: "Different drive fault" },
+        { q: "Top speed reduced over time?", yes: "Hydrostatic pump wear — Linde major service item", no: "Pressure or control" },
+      ],
+    },
+    electrical: {
+      tendencies: [
+        "LindePulse / LindeIntelligent diagnostic codes on newer trucks — proprietary scanner.",
+        "Operator card reader fault on LindeID trucks — fleet lockout.",
+        "Joystick electronics on H/E series — multi-axis fault from sensor wear.",
+        "Harness chafe at mast pivot on reach trucks — Linde routing similar to other reaches.",
+        "BlueSpot LED projector failure on newer Linde — pedestrian safety feature.",
+      ],
+      questions: [
+        { q: "Newer Linde with diagnostic code?", yes: "LindePulse/Intelligent scanner code lookup", no: "No code path" },
+        { q: "LindeID card not recognized?", yes: "Card reader fault — check reader and card, fleet management issue", no: "Different lockout" },
+        { q: "Joystick acting up across multiple axes?", yes: "Joystick sensor wear — H/E common, replace stick", no: "Different control issue" },
+        { q: "BlueSpot LED not projecting?", yes: "LED projector failure — safety feature, replace projector", no: "Different lighting fault" },
+      ],
+    },
+    overheating: {
+      tendencies: [
+        "Hydraulic oil overheat on H-series under sustained heavy lift — cooler restriction.",
+        "Deutz diesel cooling fan clutch — fan spins but moves no air.",
+        "VW industrial engine thermostat stuck — rapid overheat.",
+        "E-series motor overheat under sustained heavy duty.",
+        "Controller heat sink fan on newer Linde — derate under heat.",
+      ],
+      questions: [
+        { q: "Hydraulic oil overheat on H-series?", yes: "Hydraulic cooler restriction — clean cooler", no: "Engine cooling side" },
+        { q: "How fast does engine overheat?", yes: "Within minutes = thermostat stuck or severe blockage", no: "Gradual flow issue" },
+        { q: "Fan spinning but no airflow?", yes: "Fan clutch failure — Deutz common", no: "Belt or motor" },
+        { q: "Controller heat warning on newer Linde?", yes: "Heat sink fan or airflow — check controller fan", no: "Battery or duty cycle" },
+      ],
+    },
+    noise: {
+      tendencies: [
+        "Hydrostatic pump whine on H-series — distinct from gear-drive whine.",
+        "Deutz diesel injector tick on H30/H35 — wears with hours.",
+        "Drive motor bearing growl on E-series — high-hour wear.",
+        "Mast wheel flat spots on R14/R16 reach — clicking with lift.",
+        "Exhaust system rattle on VW industrial — common factory exhaust resonance.",
+      ],
+      questions: [
+        { q: "Whine specifically from hydraulic pump area on H-series?", yes: "Hydrostatic pump wear — Linde major service item", no: "Different noise source" },
+        { q: "Diesel injector tick that worsens with hours?", yes: "Injector wear — Deutz/VW industrial, common", no: "Other engine noise" },
+        { q: "Drive growling on E-series?", yes: "Drive motor bearing — high-hour AC drive wear", no: "Other drivetrain" },
+        { q: "Clicking accompanying lift on reach?", yes: "Mast wheel flat spots — R14/R16 wear, replace wheels", no: "Different mast fault" },
+      ],
+    },
+  },
+
+  jungheinrich: {
+    no_start: {
+      tendencies: [
+        "Operator presence sensor on EFG-series — common failure, refuses power-up.",
+        "BDI lockout on Li-ion equipped Jungheinrich — partial charge state lockouts.",
+        "Curtis controller fault code on EFG/ETV — scanner required.",
+        "Tiller switch wear on ESE/EJC pedestrian trucks — intermittent power.",
+        "Battery connector wear on legacy Jungheinrich — arcing at pins.",
+      ],
+      questions: [
+        { q: "EFG truck powers up with operator absent but not with operator?", yes: "Operator presence sensor — common Jungheinrich failure", no: "Different fault path" },
+        { q: "Li-ion truck refusing operation despite charge?", yes: "BDI / BMS lockout state — Jungheinrich Li-ion firmware quirk, full charge reset", no: "Different lockout" },
+        { q: "Controller code on display?", yes: "Curtis code lookup — Jungheinrich uses Curtis on most models", no: "No code path" },
+        { q: "Pedestrian truck (ESE/EJC) won't power up?", yes: "Tiller switch wear — common pedestrian Jungheinrich", no: "Different power issue" },
+      ],
+    },
+    steering: {
+      tendencies: [
+        "Electric steering motor encoder fault on EFG-series — code stored.",
+        "Steer angle calibration drift on ETV reach — wheel/tire mismatch.",
+        "Hex coupling wear between steer motor and drive on ETV.",
+        "Tie rod end wear on EFG220 — clunking on direction change.",
+        "Steer flow divider on multi-function trucks — heavy under simultaneous lift.",
+      ],
+      questions: [
+        { q: "EFG with electric steering fault code?", yes: "Steer encoder or coupling — Curtis code lookup", no: "Mechanical or hydraulic side" },
+        { q: "ETV reach with steering wheel/tire angle mismatch?", yes: "Steer angle calibration drift — recalibration procedure", no: "Mechanical wear" },
+        { q: "Clunk at steer wheel on direction change?", yes: "Hex coupling or tie rod end — depends on model", no: "Internal issue" },
+        { q: "Steering heavy under simultaneous lift?", yes: "Flow divider priority issue — common multi-function", no: "Pump or supply" },
+      ],
+    },
+    mast_hydraulic: {
+      tendencies: [
+        "Lift chain stretch on ETV reach — fork tip-down condition.",
+        "Free-lift cylinder seal failure on ETV214/216 — inner stage drops.",
+        "Reach cylinder hose chafe at carriage — burst risk under high lift.",
+        "Hydraulic seal degradation on EFG — common after 6000 hours.",
+        "Mast scanner fault on EKS210 order picker — locks out at height.",
+      ],
+      questions: [
+        { q: "ETV reach with forks tipping down under no load?", yes: "Lift chain stretch — Jungheinrich chain gauge spec", no: "Different mast issue" },
+        { q: "Inner stage of reach drops slowly?", yes: "Free-lift cylinder seal — ETV214/216 wear pattern", no: "Main lift" },
+        { q: "Visible hose chafe at mast carriage?", yes: "Re-route or replace — burst risk under load", no: "Internal hydraulic" },
+        { q: "Order picker (EKS210) stops at certain height?", yes: "Mast scanner sensor — pull code", no: "Hydraulic pressure" },
+      ],
+    },
+    brakes: {
+      tendencies: [
+        "Regen brake calibration drift on EFG AC drive — weak braking feel.",
+        "Parking brake disc wear on ETV reach — won't hold on grade.",
+        "Service brake by-wire sensor on newer Jungheinrich — safety critical.",
+        "Brake pedal return spring on EFG — pedal stays down.",
+        "Pedestrian truck (ESE) plug-brake contactor wear.",
+      ],
+      questions: [
+        { q: "EFG with weak braking feel?", yes: "Regen calibration drift — recalibration procedure", no: "Mechanical brake" },
+        { q: "ETV not holding on grade with load?", yes: "Parking brake disc wear — high-hour ETV", no: "Different parking system" },
+        { q: "Pedal feels normal but no braking?", yes: "By-wire sensor — safety critical, investigate", no: "Mechanical fault" },
+        { q: "Pedestrian truck with weak plug brake?", yes: "Plug-brake contactor wear — ESE service item", no: "Different brake fault" },
+      ],
+    },
+    transmission: {
+      tendencies: [
+        "AC drive motor bearing wear on EFG/ETV — whine before growl.",
+        "Hex coupling spline wear — clunk on direction change.",
+        "Drive gear case oil leak at output seal — fluid under wheels.",
+        "Drive parameter drift in Curtis controller — jerky starts.",
+        "Older DC drive Jungheinrich: brush wear — slipping or no drive.",
+      ],
+      questions: [
+        { q: "Drive whine progressing to growl?", yes: "AC drive motor bearing — EFG/ETV typical wear", no: "Different drive source" },
+        { q: "Clunk on F/R direction change?", yes: "Hex coupling spline wear — replace coupling", no: "Other drivetrain" },
+        { q: "Fluid leak at drive wheels?", yes: "Gear case output seal — replace seal, common service item", no: "Other leak source" },
+        { q: "Legacy DC Jungheinrich with slipping drive?", yes: "Drive motor brushes — replace before commutator damage", no: "Different drive fault" },
+      ],
+    },
+    electrical: {
+      tendencies: [
+        "Curtis controller codes on EFG/ETV — scanner standard procedure.",
+        "Li-ion BMS fault on newer Jungheinrich — firmware reset sometimes resolves.",
+        "Joystick sensor wear on EKS210 order picker — multi-axis fault.",
+        "Harness chafe at mast pivot on ETV reach.",
+        "ISM (Intelligent Service Management) module battery dead — fleet tracking dropout.",
+      ],
+      questions: [
+        { q: "Curtis controller code displayed?", yes: "Code lookup — standard Curtis procedure", no: "No code path" },
+        { q: "Li-ion truck with BMS warning?", yes: "BMS fault — try firmware reset before deeper diagnosis", no: "Different battery fault" },
+        { q: "Order picker with multi-axis joystick issue?", yes: "Joystick sensor wear — EKS210 common", no: "Different control" },
+        { q: "Faults when mast is fully raised?", yes: "Mast pivot harness chafe — ETV reach common", no: "Different routing" },
+      ],
+    },
+    overheating: {
+      tendencies: [
+        "Traction motor overheat on EFG under heavy duty cycle.",
+        "Controller heat sink fan failure — drive cuts back.",
+        "Lift pump motor overheat on ETV — repeated cycles trigger thermal cut.",
+        "Li-ion battery overheat from fast-charge cycling — BMS lockout.",
+        "DC drive motor overheat on legacy Jungheinrich — brush/commutator wear.",
+      ],
+      questions: [
+        { q: "Heavy duty cycle with motor overheat?", yes: "Application exceeds duty rating — review pattern", no: "Single component" },
+        { q: "Controller overtemp code?", yes: "Heat sink fan or airflow blockage", no: "Different overheat" },
+        { q: "Li-ion battery hot after fast charge?", yes: "Fast-charge cycling overheat — adjust charging pattern", no: "BMS or cell issue" },
+        { q: "Legacy DC drive smell under load?", yes: "Brush/commutator overheat — immediate inspection", no: "Other source" },
+      ],
+    },
+    noise: {
+      tendencies: [
+        "AC drive motor bearing growl on EFG/ETV — high-hour wear.",
+        "Lift pump motor whine on ETV — bearing wear under load.",
+        "Mast wheel flat spots on ETV reach — clicking with lift.",
+        "Hex coupling rattle on Jungheinrich drive — direction change.",
+        "Li-ion contactor click anomalies — high-current switching wear.",
+      ],
+      questions: [
+        { q: "Drive wheels growling under load?", yes: "Drive motor bearing — EFG/ETV high-hour", no: "Other drivetrain" },
+        { q: "Whine during lift?", yes: "Lift pump motor bearing — ETV wear", no: "Mast side" },
+        { q: "Clicking accompanying jerky lift?", yes: "Mast wheel flat spots — replace wheels", no: "Different mast fault" },
+        { q: "Unusual contactor clicking?", yes: "High-current contactor wear — Li-ion or legacy system, inspect", no: "Other source" },
+      ],
+    },
+  },
+
+  komatsu: {
+    no_start: {
+      tendencies: [
+        "Seat switch / OPS failure on FG-T and FD-T series — connector corrosion.",
+        "Nissan K21 LPG (FG25T/30T): lockoff solenoid after long sit.",
+        "Komatsu 4D94LE diesel (FD-T): fuel pump priming weakness — long crank.",
+        "FB-series electric: battery isolator switch wear — appears dead.",
+        "Key barrel internal contact wear on older Komatsu — turn-and-jiggle to start.",
+      ],
+      questions: [
+        { q: "Dash powers up with key?", yes: "Crank or fuel side", no: "Isolator, key, or main power" },
+        { q: "K21 LPG with no-start after weekend?", yes: "Lockoff solenoid — Nissan K21 common", no: "Different LPG fault" },
+        { q: "4D94LE diesel with long crank?", yes: "Fuel pump priming weakness — manual prime", no: "Glow plug or compression" },
+        { q: "FB-series electric appears dead?", yes: "Main battery isolator wear — voltage check at terminal", no: "Different power issue" },
+      ],
+    },
+    steering: {
+      tendencies: [
+        "Hydraulic orbital wear on FG-T/FD-T — solid Japanese build but eventual wear.",
+        "Steer cylinder rod seal on FD30T — visible oil at rod.",
+        "Tie rod end wear on FG-T series — wandering before clunk.",
+        "Priority valve setting drift on FD40T — heavy steering under simultaneous lift.",
+        "FB-series electric steering: encoder fault, code stored.",
+      ],
+      questions: [
+        { q: "Spongy or delayed steering?", yes: "Orbital wear — solid Komatsu but eventual wear", no: "Mechanical or supply" },
+        { q: "Oil at steer cylinder rod?", yes: "Rod seal — FD30T typical wear", no: "Internal hydraulic" },
+        { q: "Wandering on straight?", yes: "Tie rod ends — FG-T inspection", no: "Hydraulic side" },
+        { q: "FB electric with steering fault code?", yes: "Steer encoder — Komatsu Match scanner code lookup", no: "Hydraulic side" },
+      ],
+    },
+    mast_hydraulic: {
+      tendencies: [
+        "Lift cylinder seal wear on FD30T — fork drift after high hours.",
+        "Tilt cylinder seal on FG25T — mast creep under load.",
+        "Mast chain stretch on FD-T — uneven fork height.",
+        "Hydraulic control valve detent on FB-series — lever drift.",
+        "Mast roller wear on FD40T heavy-duty — grease interval critical under load.",
+      ],
+      questions: [
+        { q: "Load drifts down when held?", yes: "Lift cylinder seal — FD30T high-hour wear", no: "Different mast issue" },
+        { q: "Mast tilts forward under load?", yes: "Tilt cylinder seals — FG25T common", no: "Valve centering" },
+        { q: "Forks uneven after long use?", yes: "Chain stretch — measure with gauge", no: "Anchor or wear" },
+        { q: "FD40T with mast roller binding?", yes: "Roller wear under heavy duty — increase grease frequency", no: "Different mast fault" },
+      ],
+    },
+    brakes: {
+      tendencies: [
+        "Master cylinder bypass on FG-T/FD-T — pedal fades, Japanese-quality but eventual wear.",
+        "Wet disc brake wear inside powershift trans on Komatsu — trans pull required.",
+        "Parking brake cable stretch on FD30T — adjuster maxes out.",
+        "Brake booster vacuum leak on FG25T — hard pedal.",
+        "FB-series electric: regen brake calibration drift.",
+      ],
+      questions: [
+        { q: "Pedal fades when held?", yes: "Master cylinder bypass — FG-T/FD-T typical wear", no: "External issue" },
+        { q: "Powershift Komatsu with weak braking?", yes: "Wet disc wear — trans pull required", no: "External system" },
+        { q: "Parking brake adjuster maxed?", yes: "Cable stretch — FD30T common", no: "Mechanism" },
+        { q: "FB electric weak braking?", yes: "Regen calibration drift — recalibration procedure", no: "Different brake fault" },
+      ],
+    },
+    transmission: {
+      tendencies: [
+        "Powershift clutch pack wear on FD30T — harsh engagement when warm.",
+        "Inching valve adjustment drift on FG-T — poor creep.",
+        "Trans cooler restriction on FD40T heavy-duty.",
+        "Directional solenoid coil failure on FD-T — intermittent F or R.",
+        "FB-series AC drive motor bearing — whine then growl.",
+      ],
+      questions: [
+        { q: "Hard engagement when warm?", yes: "Clutch pack wear — FD30T powershift", no: "Cold issue is different" },
+        { q: "F or R intermittently lost?", yes: "Directional solenoid coil — FD-T wear", no: "Mechanical clutch" },
+        { q: "Trans overheats heavy duty cycle?", yes: "Cooler restriction — FD40T heavy use, clean cooler", no: "Internal" },
+        { q: "FB electric with drive noise?", yes: "AC motor bearing — replace before failure", no: "Other source" },
+      ],
+    },
+    electrical: {
+      tendencies: [
+        "Komatsu Match diagnostic codes — proprietary system, scanner required.",
+        "Instrument cluster failure on older FG/FD-T — segment dropouts.",
+        "Harness chafe at mast pivot on FD-T — Komatsu routing wear point.",
+        "Throttle position sensor on K21 LPG — surging.",
+        "FB-series controller faults — Komatsu OEM scanner standard.",
+      ],
+      questions: [
+        { q: "Code displayed but no clear meaning?", yes: "Komatsu Match scanner code lookup — proprietary system", no: "No code path" },
+        { q: "Instrument segments missing?", yes: "Cluster failure — older FG/FD-T, replace cluster", no: "Sender issue" },
+        { q: "Issues when mast is raised?", yes: "Mast pivot harness chafe — FD-T routing wear", no: "Different location" },
+        { q: "K21 LPG engine surging?", yes: "TPS wear — common Nissan K21 failure", no: "Different drivability" },
+      ],
+    },
+    overheating: {
+      tendencies: [
+        "Radiator clogging on FD-T — Komatsu cores accumulate dust in warehouse use.",
+        "Thermostat stuck on 4D94LE — rapid overheat.",
+        "Water pump weep on Komatsu 4D94LE diesel.",
+        "Cooling fan clutch failure on FD40T heavy-duty.",
+        "FB-series motor overheat under heavy duty cycle.",
+      ],
+      questions: [
+        { q: "How fast does it overheat?", yes: "Within minutes = thermostat or severe blockage", no: "Gradual" },
+        { q: "Radiator clogged?", yes: "Clean core — Komatsu cores accumulate", no: "Internal flow" },
+        { q: "Drip from water pump?", yes: "Pump seal — 4D94LE wear", no: "Other leak" },
+        { q: "FB heavy duty cycle motor overheat?", yes: "Application duty rating — review pattern", no: "Component failure" },
+      ],
+    },
+    noise: {
+      tendencies: [
+        "4D94LE injector tick on FD-T — wears with hours.",
+        "Trans whine on FD-T powershift — input bearing wear.",
+        "Hydraulic pump cavitation on cold starts — common Komatsu IC.",
+        "Mast chain slap on FD-T — Komatsu tension spec.",
+        "Exhaust manifold gasket leak on 4D94LE — ticking worsens with temp.",
+      ],
+      questions: [
+        { q: "Ticking with engine RPM?", yes: "Injector wear or exhaust manifold gasket — 4D94LE", no: "Not engine-driven" },
+        { q: "Whine from trans area?", yes: "Trans input bearing — FD-T high-hour wear", no: "Other source" },
+        { q: "Whine on cold-start lift?", yes: "Pump cavitation — aerated oil, check level", no: "Bearing failure" },
+        { q: "Mast chain rattle at rest?", yes: "Chain tension per Komatsu spec — verify and adjust", no: "Mast wheel noise" },
       ],
     },
   },
