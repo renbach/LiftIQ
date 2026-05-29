@@ -14,7 +14,7 @@ export function mediaRoutes(storage) {
       if (!req.file) return res.status(400).json({ error: "No image provided" });
 
       const id = uuid();
-      const { kind, brand, model, system, component, failure_type, part_number, hours, notes } = req.body;
+      const { kind, brand, model, system, component, failure_type, part_number, hours, notes, group_id, role } = req.body;
 
       const image = sharp(req.file.buffer).rotate();
       const fullImage = await image.clone().resize(1600, 1600, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 85 }).toBuffer();
@@ -28,9 +28,9 @@ export function mediaRoutes(storage) {
       const tagged = computeTagged(kind, brand, system);
 
       run(
-        `INSERT INTO media (id, filename, original_name, kind, brand, model, system, component, failure_type, part_number, hours, notes, tagged)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, `${id}.jpg`, req.file.originalname, kind || null, brand || null, model || null, system || null, component || null, failure_type || null, part_number || null, hours || null, notes || null, tagged]
+        `INSERT INTO media (id, filename, original_name, kind, brand, model, system, component, failure_type, part_number, hours, notes, group_id, role, tagged)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, `${id}.jpg`, req.file.originalname, kind || null, brand || null, model || null, system || null, component || null, failure_type || null, part_number || null, hours || null, notes || null, group_id || null, role || null, tagged]
       );
 
       const row = get("SELECT * FROM media WHERE id = ?", [id]);
@@ -42,7 +42,7 @@ export function mediaRoutes(storage) {
   });
 
   router.get("/", (req, res) => {
-    const { kind, brand, model, system, failure_type, q, limit = "50", offset = "0" } = req.query;
+    const { kind, brand, model, system, failure_type, group_id, ungrouped, q, limit = "50", offset = "0" } = req.query;
     let sql = "SELECT * FROM media WHERE 1=1";
     const params = [];
 
@@ -52,6 +52,8 @@ export function mediaRoutes(storage) {
     if (model) { sql += " AND model = ?"; params.push(model); }
     if (system) { sql += " AND system = ?"; params.push(system); }
     if (failure_type) { sql += " AND failure_type = ?"; params.push(failure_type); }
+    if (ungrouped === "1") { sql += " AND group_id IS NULL"; }
+    else if (group_id) { sql += " AND group_id = ?"; params.push(group_id); }
     if (q) {
       sql += " AND (component LIKE ? OR part_number LIKE ? OR notes LIKE ? OR model LIKE ?)";
       const like = `%${q}%`;
@@ -91,7 +93,7 @@ export function mediaRoutes(storage) {
     const row = get("SELECT * FROM media WHERE id = ?", [req.params.id]);
     if (!row) return res.status(404).json({ error: "Not found" });
 
-    const fields = ["kind", "brand", "model", "system", "component", "failure_type", "part_number", "hours", "notes"];
+    const fields = ["kind", "brand", "model", "system", "component", "failure_type", "part_number", "hours", "notes", "group_id", "role"];
     const updates = [];
     const params = [];
 
@@ -148,7 +150,7 @@ export function mediaRoutes(storage) {
   return router;
 }
 
-function formatRow(row) {
+export function formatRow(row) {
   return {
     id: row.id,
     originalName: row.original_name,
@@ -161,6 +163,8 @@ function formatRow(row) {
     partNumber: row.part_number || "",
     hours: row.hours || "",
     notes: row.notes || "",
+    groupId: row.group_id || null,
+    role: row.role || "",
     tagged: Boolean(row.tagged),
     thumbUrl: `/api/media/${row.id}/thumb`,
     imageUrl: `/api/media/${row.id}/image`,

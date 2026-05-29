@@ -5,6 +5,34 @@ export const KINDS = [
   { value: "other", label: "Other" },
 ];
 
+// Predefined roles a photo can play within a unit (group).
+export const ROLES = [
+  { value: "data_tag", label: "Data Tag" },
+  { value: "hour_meter", label: "Hour Meter" },
+  { value: "master_shot", label: "Master Shot" },
+  { value: "detail", label: "Detail / Other" },
+];
+
+// Merge the static BRANDS map with user-added custom taxonomy from /api/models.
+// customMap is { brand: [models] } (empty array = brand registered, no models).
+// Returns a fresh { brand: [models] } object, deduped with models sorted.
+export function mergeBrands(staticBrands, customMap = {}) {
+  const merged = {};
+  for (const [brand, models] of Object.entries(staticBrands)) {
+    merged[brand] = [...models];
+  }
+  for (const [brand, models] of Object.entries(customMap)) {
+    if (!merged[brand]) merged[brand] = [];
+    for (const m of models) {
+      if (m && !merged[brand].includes(m)) merged[brand].push(m);
+    }
+  }
+  for (const brand of Object.keys(merged)) {
+    merged[brand].sort((a, b) => a.localeCompare(b));
+  }
+  return merged;
+}
+
 export const BRANDS = {
   "Toyota": [
     "8FGCU25", "8FGCU30", "8FBE15", "8FBE20", "7FGCU25",
