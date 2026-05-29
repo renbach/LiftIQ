@@ -6,6 +6,8 @@ export async function fetchMedia(filters = {}) {
   if (filters.brand) params.set("brand", filters.brand);
   if (filters.system) params.set("system", filters.system);
   if (filters.q) params.set("q", filters.q);
+  if (filters.limit != null) params.set("limit", filters.limit);
+  if (filters.offset != null) params.set("offset", filters.offset);
   const res = await fetch(`${BASE}?${params}`);
   if (!res.ok) throw new Error("Failed to fetch media");
   return res.json();

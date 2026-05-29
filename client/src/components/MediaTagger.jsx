@@ -4,10 +4,13 @@ import { KINDS, BRANDS, SYSTEMS, FAILURE_TYPES } from "../data/taxonomy.js";
 import { fetchMedia, uploadMedia, updateMedia, deleteMedia } from "../lib/api.js";
 
 export default function MediaTagger({ isDesktop = false, isUltrawide = false }) {
+  const PAGE_SIZE = 60;
   const [view, setView] = useState("library");
   const [items, setItems] = useState([]);
-  const [stats, setStats] = useState({ total: 0, tagged: 0, withParts: 0 });
+  const [stats, setStats] = useState({ total: 0, tagged: 0, withParts: 0, byKind: {} });
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [pending, setPending] = useState([]);
   const [filter, setFilter] = useState({ kind: "", brand: "", system: "", q: "" });
@@ -15,26 +18,69 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
   const [editing, setEditing] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const fileRef = useRef(null);
+  const sentinelRef = useRef(null);
+  const loadingRef = useRef(false); // guards against overlapping fetches
 
-  const loadLibrary = async () => {
+  const loadFirstPage = async () => {
+    setLoading(true);
+    loadingRef.current = true;
     try {
-      const data = await fetchMedia(filter);
+      const data = await fetchMedia({ ...filter, limit: PAGE_SIZE, offset: 0 });
       setItems(data.items);
       setStats(data.stats);
+      setHasMore(data.items.length === PAGE_SIZE);
     } catch (e) {
       console.error("Failed to load library:", e);
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
   };
 
-  useEffect(() => { loadLibrary(); }, [filter.kind, filter.brand, filter.system]);
+  const loadMore = async () => {
+    if (loadingRef.current || !hasMore) return;
+    loadingRef.current = true;
+    setLoadingMore(true);
+    try {
+      const data = await fetchMedia({ ...filter, limit: PAGE_SIZE, offset: items.length });
+      setItems((prev) => [...prev, ...data.items]);
+      setStats(data.stats);
+      setHasMore(data.items.length === PAGE_SIZE);
+    } catch (e) {
+      console.error("Failed to load more:", e);
+    } finally {
+      setLoadingMore(false);
+      loadingRef.current = false;
+    }
+  };
 
+  // Refresh only the header counts after an in-place edit/delete (cheap 1-row call)
+  const refreshStats = async () => {
+    try {
+      const data = await fetchMedia({ ...filter, limit: 1, offset: 0 });
+      setStats(data.stats);
+    } catch { /* non-critical */ }
+  };
+
+  // Reload page 1 whenever a filter changes (q debounced)
   useEffect(() => {
-    if (!filter.q) { loadLibrary(); return; }
-    const t = setTimeout(loadLibrary, 300);
+    const t = setTimeout(loadFirstPage, filter.q ? 300 : 0);
     return () => clearTimeout(t);
-  }, [filter.q]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter.kind, filter.brand, filter.system, filter.q]);
+
+  // Infinite scroll: observe a sentinel near the bottom of the grid
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || loading || !hasMore) return;
+    const obs = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMore(); },
+      { rootMargin: "400px" }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMore, loading, loadingMore, items.length, filter.kind, filter.brand, filter.system, filter.q]);
 
   const handleFiles = (fileList) => {
     const files = Array.from(fileList).slice(0, 20);
@@ -72,7 +118,7 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
       pending.forEach((p) => URL.revokeObjectURL(p.preview));
       setPending([]);
       setView("library");
-      loadLibrary();
+      loadFirstPage();
     } catch (e) {
       console.error("Save failed:", e);
     } finally {
@@ -83,7 +129,8 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
   const handleDelete = async (id) => {
     try {
       await deleteMedia(id);
-      loadLibrary();
+      setItems((prev) => prev.filter((it) => it.id !== id));
+      refreshStats();
     } catch (e) {
       console.error("Delete failed:", e);
     }
@@ -117,7 +164,7 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
     setSavingEdit(true);
     try {
       const isForklift = editing.kind === "forklift";
-      await updateMedia(editing.id, {
+      const updated = await updateMedia(editing.id, {
         kind: editing.kind,
         brand: isForklift ? editing.brand : "",
         model: isForklift ? editing.model : "",
@@ -128,8 +175,10 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
         hours: isForklift ? editing.hours : "",
         notes: editing.notes,
       });
+      // Patch the edited row in place (updateMedia returns the formatted row)
+      setItems((prev) => prev.map((it) => (it.id === updated.id ? updated : it)));
+      refreshStats();
       closeEdit();
-      loadLibrary();
     } catch (e) {
       console.error("Save failed:", e);
     } finally {
@@ -283,6 +332,7 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
                 </div>
               </div>
             ) : (
+              <>
               <div style={{
                 display: "grid",
                 gridTemplateColumns: isDesktop
@@ -341,6 +391,21 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
                   </div>
                 ))}
               </div>
+              {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
+              {loadingMore && (
+                <div style={{ textAlign: "center", padding: 20, color: theme.textMuted, fontSize: 12 }}>
+                  Loading more…
+                </div>
+              )}
+              {!hasMore && items.length > 8 && (
+                <div style={{
+                  textAlign: "center", padding: 20, color: theme.textMuted, fontSize: 11,
+                  letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace",
+                }}>
+                  End · {items.length} photos
+                </div>
+              )}
+              </>
             )}
           </>
         )}
