@@ -33,13 +33,45 @@ export async function getDb(filePath) {
       part_number TEXT,
       hours TEXT,
       notes TEXT,
+      group_id TEXT,
+      role TEXT,
       tagged INTEGER DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     )
   `);
 
-  // Migration: add `kind` column to existing DBs that pre-date it
+  // A "unit" = one physical forklift / visit, bundling its data-tag,
+  // hour-meter, master-shot and detail photos into one addressable record.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS groups (
+      id TEXT PRIMARY KEY,
+      label TEXT,
+      brand TEXT,
+      model TEXT,
+      serial TEXT,
+      hours TEXT,
+      system TEXT,
+      notes TEXT,
+      cover_media_id TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
+  // User-added taxonomy. A row (brand, '') registers a new brand with no
+  // models yet; (brand, model) adds a model under any brand.
+  db.run(`
+    CREATE TABLE IF NOT EXISTS custom_models (
+      id TEXT PRIMARY KEY,
+      brand TEXT NOT NULL,
+      model TEXT NOT NULL DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(brand, model)
+    )
+  `);
+
+  // Migrations: add columns to existing DBs that pre-date them
   const cols = [];
   const colStmt = db.prepare("PRAGMA table_info(media)");
   while (colStmt.step()) {
@@ -48,6 +80,12 @@ export async function getDb(filePath) {
   colStmt.free();
   if (!cols.includes("kind")) {
     db.run("ALTER TABLE media ADD COLUMN kind TEXT");
+  }
+  if (!cols.includes("group_id")) {
+    db.run("ALTER TABLE media ADD COLUMN group_id TEXT");
+  }
+  if (!cols.includes("role")) {
+    db.run("ALTER TABLE media ADD COLUMN role TEXT");
   }
 
   persist();

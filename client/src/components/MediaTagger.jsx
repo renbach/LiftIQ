@@ -1,7 +1,13 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { theme } from "../theme.js";
-import { KINDS, BRANDS, SYSTEMS, FAILURE_TYPES } from "../data/taxonomy.js";
-import { fetchMedia, uploadMedia, updateMedia, deleteMedia } from "../lib/api.js";
+import { KINDS, BRANDS, SYSTEMS, FAILURE_TYPES, ROLES, mergeBrands } from "../data/taxonomy.js";
+import {
+  fetchMedia, uploadMedia, updateMedia, deleteMedia,
+  fetchModels, addModel,
+  fetchGroups, fetchGroup, createGroup, updateGroup, deleteGroup,
+} from "../lib/api.js";
+
+const roleLabel = (v) => ROLES.find((r) => r.value === v)?.label || "";
 
 export default function MediaTagger({ isDesktop = false, isUltrawide = false }) {
   const PAGE_SIZE = 60;
@@ -20,6 +26,141 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
   const fileRef = useRef(null);
   const sentinelRef = useRef(null);
   const loadingRef = useRef(false); // guards against overlapping fetches
+
+  // Custom taxonomy (merged with static BRANDS for the three brand/model selects)
+  const [customModels, setCustomModels] = useState({});
+  const brands = useMemo(() => mergeBrands(BRANDS, customModels), [customModels]);
+  const [addValue, setAddValue] = useState(null); // { type:"brand"|"model", brand, onComplete }
+
+  // Units (media groups)
+  const [mediaMode, setMediaMode] = useState("photos"); // photos | units
+  const [groups, setGroups] = useState([]);
+  const [groupStats, setGroupStats] = useState({ total: 0 });
+  const [groupsLoading, setGroupsLoading] = useState(false);
+  const [groupDetail, setGroupDetail] = useState(null); // open unit (with items)
+  const [groupBusy, setGroupBusy] = useState(false);
+  const [unitOptions, setUnitOptions] = useState([]); // lightweight list for pickers
+  const [assignPicker, setAssignPicker] = useState(null); // ungrouped photos to add to a unit
+
+  // Load custom taxonomy + unit options once
+  useEffect(() => {
+    fetchModels().then(setCustomModels).catch(() => {});
+    loadUnitOptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadUnitOptions = async () => {
+    try {
+      const d = await fetchGroups({ limit: 200 });
+      setUnitOptions(d.items);
+    } catch { /* non-critical */ }
+  };
+
+  // Add-value flow for the brand/model selects
+  const openAdd = (cfg) => setAddValue(cfg);
+  const submitAddValue = async (text) => {
+    const val = (text || "").trim();
+    if (!val || !addValue) { setAddValue(null); return; }
+    const { type, brand, onComplete } = addValue;
+    try {
+      const map = type === "brand"
+        ? await addModel({ brand: val })
+        : await addModel({ brand, model: val });
+      setCustomModels(map);
+      onComplete?.(val);
+    } catch (e) {
+      console.error("Add failed:", e);
+    }
+    setAddValue(null);
+  };
+
+  const loadGroups = async () => {
+    setGroupsLoading(true);
+    try {
+      const data = await fetchGroups({ brand: filter.brand, system: filter.system, q: filter.q, limit: 100 });
+      setGroups(data.items);
+      setGroupStats(data.stats);
+    } catch (e) {
+      console.error("Failed to load units:", e);
+    } finally {
+      setGroupsLoading(false);
+    }
+  };
+
+  // Reload the units list whenever filters change while browsing units
+  useEffect(() => {
+    if (mediaMode !== "units" || groupDetail) return;
+    const t = setTimeout(loadGroups, filter.q ? 300 : 0);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mediaMode, groupDetail, filter.brand, filter.system, filter.q]);
+
+  const openGroup = async (id) => {
+    try { setGroupDetail(await fetchGroup(id)); } catch (e) { console.error(e); }
+  };
+  const refreshGroupDetail = async () => {
+    if (!groupDetail) return;
+    try { setGroupDetail(await fetchGroup(groupDetail.id)); } catch (e) { console.error(e); }
+  };
+  const closeGroup = () => { setGroupDetail(null); loadGroups(); loadUnitOptions(); };
+
+  const newUnit = async () => {
+    setGroupBusy(true);
+    try {
+      const g = await createGroup({ label: "New Unit" });
+      setGroupDetail({ ...g, items: [] });
+      loadUnitOptions();
+    } catch (e) {
+      console.error("Create unit failed:", e);
+    } finally {
+      setGroupBusy(false);
+    }
+  };
+
+  const setUnitLocal = (field, value) => setGroupDetail((g) => ({ ...g, [field]: value }));
+  const commitUnit = async (field) => {
+    if (!groupDetail) return;
+    try {
+      await updateGroup(groupDetail.id, { [field]: groupDetail[field] });
+      loadUnitOptions();
+    } catch (e) { console.error("Save unit failed:", e); }
+  };
+
+  const setMemberRole = async (mediaId, role) => {
+    try { await updateMedia(mediaId, { role }); await refreshGroupDetail(); }
+    catch (e) { console.error(e); }
+  };
+  const setUnitCover = async (mediaId) => {
+    try { await updateGroup(groupDetail.id, { cover_media_id: mediaId }); await refreshGroupDetail(); }
+    catch (e) { console.error(e); }
+  };
+  const removeFromUnit = async (mediaId) => {
+    try { await updateMedia(mediaId, { group_id: "", role: "" }); await refreshGroupDetail(); }
+    catch (e) { console.error(e); }
+  };
+  const deleteUnit = async () => {
+    if (!groupDetail) return;
+    if (!confirm("Delete this unit? Its photos stay in the library (ungrouped).")) return;
+    try {
+      await deleteGroup(groupDetail.id);
+      closeGroup();
+    } catch (e) { console.error(e); }
+  };
+
+  // Add existing ungrouped photos to the open unit
+  const openAssignPicker = async () => {
+    try {
+      const d = await fetchMedia({ ungrouped: 1, limit: 60 });
+      setAssignPicker(d.items);
+    } catch (e) { console.error(e); }
+  };
+  const assignToUnit = async (mediaId, role = "detail") => {
+    try {
+      await updateMedia(mediaId, { group_id: groupDetail.id, role });
+      setAssignPicker((p) => (p ? p.filter((it) => it.id !== mediaId) : p));
+      await refreshGroupDetail();
+    } catch (e) { console.error(e); }
+  };
 
   const loadFirstPage = async () => {
     setLoading(true);
@@ -151,6 +292,8 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
       part_number: item.partNumber || "",
       hours: item.hours || "",
       notes: item.notes || "",
+      group_id: item.groupId || "",
+      role: item.role || "",
     });
   };
 
@@ -174,6 +317,8 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
         part_number: editing.part_number,
         hours: isForklift ? editing.hours : "",
         notes: editing.notes,
+        group_id: editing.group_id || "",
+        role: editing.group_id ? (editing.role || "detail") : "",
       });
       // Patch the edited row in place (updateMedia returns the formatted row)
       setItems((prev) => prev.map((it) => (it.id === updated.id ? updated : it)));
@@ -209,15 +354,38 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
         background: theme.bgCard,
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, gap: 16 }}>
-          <div style={{
-            fontSize: 10, color: theme.textMuted, letterSpacing: "0.15em",
-            textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace",
-          }}>
-            Field Reference Library
+          <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
+            <div style={{
+              fontSize: 10, color: theme.textMuted, letterSpacing: "0.15em",
+              textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace",
+            }}>
+              Field Reference Library
+            </div>
+            {/* Photos / Units mode toggle */}
+            {view === "library" && (
+              <div style={{ display: "flex", gap: 4 }}>
+                {[["photos", "Photos"], ["units", "Units"]].map(([val, label]) => {
+                  const active = mediaMode === val;
+                  return (
+                    <button
+                      key={val}
+                      onClick={() => { setMediaMode(val); setGroupDetail(null); }}
+                      style={{
+                        background: active ? theme.accent : "transparent",
+                        color: active ? "#fff" : theme.textMuted,
+                        border: `1px solid ${active ? theme.accent : theme.border}`,
+                        borderRadius: 6, padding: isDesktop ? "5px 12px" : "4px 10px",
+                        fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", cursor: "pointer",
+                      }}
+                    >{label}</button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Desktop: stats inline next to title */}
-          {view === "library" && isDesktop && (
+          {/* Desktop: stats inline next to title (photos mode) */}
+          {view === "library" && mediaMode === "photos" && isDesktop && (
             <div style={{ display: "flex", gap: 24, flex: 1, marginLeft: 24 }}>
               {[["Total", stats.total], ["Tagged", stats.tagged], ["With Part #", stats.withParts]].map(([label, val]) => (
                 <div key={label}>
@@ -228,7 +396,8 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
             </div>
           )}
 
-          {view === "library" && (
+          {/* Contextual action button */}
+          {view === "library" && mediaMode === "photos" && (
             <button
               onClick={() => fileRef.current?.click()}
               style={{
@@ -240,6 +409,31 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
               + UPLOAD
             </button>
           )}
+          {view === "library" && mediaMode === "units" && !groupDetail && (
+            <button
+              onClick={newUnit}
+              disabled={groupBusy}
+              style={{
+                background: theme.accent, border: "none", color: "#fff",
+                borderRadius: 6, padding: isDesktop ? "9px 18px" : "7px 14px", cursor: "pointer",
+                fontSize: isDesktop ? 12 : 11, fontWeight: 700, letterSpacing: "0.05em",
+              }}
+            >
+              + NEW UNIT
+            </button>
+          )}
+          {view === "library" && mediaMode === "units" && groupDetail && (
+            <button
+              onClick={closeGroup}
+              style={{
+                background: theme.bgCard, border: `1px solid ${theme.border}`, color: theme.text,
+                borderRadius: 6, padding: isDesktop ? "9px 18px" : "7px 14px", cursor: "pointer",
+                fontSize: isDesktop ? 12 : 11, fontWeight: 700, letterSpacing: "0.05em",
+              }}
+            >
+              ← ALL UNITS
+            </button>
+          )}
         </div>
         <input
           ref={fileRef} type="file" accept="image/*" multiple
@@ -247,8 +441,8 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
           onChange={(e) => { if (e.target.files?.length) handleFiles(e.target.files); e.target.value = ""; }}
         />
 
-        {/* Mobile: stats below header */}
-        {view === "library" && !isDesktop && (
+        {/* Mobile: stats below header (photos mode) */}
+        {view === "library" && mediaMode === "photos" && !isDesktop && (
           <div style={{ display: "flex", gap: 16 }}>
             {[["Total", stats.total], ["Tagged", stats.tagged], ["With Part #", stats.withParts]].map(([label, val]) => (
               <div key={label}>
@@ -262,7 +456,7 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
 
       <div style={{ flex: 1, overflowY: "auto", padding: isDesktop ? "20px 24px" : 20 }}>
         {/* ── LIBRARY VIEW ── */}
-        {view === "library" && (
+        {view === "library" && mediaMode === "photos" && (
           <>
             <div style={{ display: "flex", gap: 6, marginBottom: isDesktop ? 12 : 8, flexWrap: "wrap" }}>
               {[
@@ -298,7 +492,7 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
                 disabled={filter.kind && filter.kind !== "forklift" && filter.kind !== ""}
               >
                 <option value="">All Brands</option>
-                {Object.keys(BRANDS).map((b) => <option key={b} value={b}>{b}</option>)}
+                {Object.keys(brands).map((b) => <option key={b} value={b}>{b}</option>)}
               </select>
               <select
                 value={filter.system}
@@ -428,17 +622,19 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <Field label="Brand" style={selectStyle}>
-                    <select value={it.brand} onChange={(e) => { updatePending(it.id, "brand", e.target.value); updatePending(it.id, "model", ""); }} style={selectStyle}>
-                      <option value="">--</option>
-                      {Object.keys(BRANDS).map((b) => <option key={b} value={b}>{b}</option>)}
-                    </select>
+                  <Field label="Brand">
+                    <SelectWithAdd
+                      value={it.brand} style={selectStyle} options={Object.keys(brands)}
+                      onChange={(v) => { updatePending(it.id, "brand", v); updatePending(it.id, "model", ""); }}
+                      onAdd={() => openAdd({ type: "brand", onComplete: (v) => { updatePending(it.id, "brand", v); updatePending(it.id, "model", ""); } })}
+                    />
                   </Field>
                   <Field label="Model">
-                    <select value={it.model} onChange={(e) => updatePending(it.id, "model", e.target.value)} style={selectStyle} disabled={!it.brand}>
-                      <option value="">--</option>
-                      {(BRANDS[it.brand] || []).map((m) => <option key={m} value={m}>{m}</option>)}
-                    </select>
+                    <SelectWithAdd
+                      value={it.model} style={selectStyle} options={brands[it.brand] || []} disabled={!it.brand}
+                      onChange={(v) => updatePending(it.id, "model", v)}
+                      onAdd={it.brand ? () => openAdd({ type: "model", brand: it.brand, onComplete: (v) => updatePending(it.id, "model", v) }) : null}
+                    />
                   </Field>
                   <Field label="System">
                     <select value={it.system} onChange={(e) => updatePending(it.id, "system", e.target.value)} style={selectStyle}>
@@ -487,6 +683,118 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
               >{uploading ? "Uploading..." : "Save to Library"}</button>
             </div>
           </>
+        )}
+
+        {/* ── UNITS LIST ── */}
+        {view === "library" && mediaMode === "units" && !groupDetail && (
+          <>
+            <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+              <select
+                value={filter.brand}
+                onChange={(e) => setFilter({ ...filter, brand: e.target.value })}
+                style={{ ...selectStyle, width: isDesktop ? 200 : "100%" }}
+              >
+                <option value="">All Brands</option>
+                {Object.keys(brands).map((b) => <option key={b} value={b}>{b}</option>)}
+              </select>
+              <select
+                value={filter.system}
+                onChange={(e) => setFilter({ ...filter, system: e.target.value })}
+                style={{ ...selectStyle, width: isDesktop ? 200 : "100%" }}
+              >
+                <option value="">All Systems</option>
+                {SYSTEMS.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <input
+                placeholder="Search label, serial, notes..."
+                value={filter.q}
+                onChange={(e) => setFilter({ ...filter, q: e.target.value })}
+                style={{ ...selectStyle, flex: 1, minWidth: 120, width: "auto" }}
+              />
+            </div>
+
+            {groupsLoading ? (
+              <div style={{ color: theme.textMuted, textAlign: "center", padding: 40 }}>Loading units...</div>
+            ) : groups.length === 0 ? (
+              <div style={{
+                textAlign: "center", padding: "48px 20px", color: theme.textMuted,
+                border: `1px dashed ${theme.border}`, borderRadius: 12,
+              }}>
+                <div style={{ fontSize: 14, color: theme.textDim, marginBottom: 6 }}>
+                  {groupStats.total === 0 ? "No units yet" : "No matches for these filters"}
+                </div>
+                <div style={{ fontSize: 12 }}>
+                  {groupStats.total === 0
+                    ? "Tap + NEW UNIT to bundle a truck's data tag, hour meter, and master shot."
+                    : "Try clearing a filter."}
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: isDesktop ? "repeat(auto-fill, minmax(240px, 1fr))" : "1fr 1fr",
+                gap: isDesktop ? 14 : 10,
+              }}>
+                {groups.map((g) => (
+                  <div
+                    key={g.id}
+                    onClick={() => openGroup(g.id)}
+                    style={{
+                      background: theme.bgCard, border: `1px solid ${theme.border}`,
+                      borderRadius: 10, overflow: "hidden", cursor: "pointer",
+                    }}
+                  >
+                    <div style={{ position: "relative", aspectRatio: "4/3", background: "#000" }}>
+                      {g.coverThumbUrl ? (
+                        <img src={g.coverThumbUrl} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : (
+                        <div style={{
+                          width: "100%", height: "100%", display: "flex", alignItems: "center",
+                          justifyContent: "center", color: theme.textMuted, fontSize: 11,
+                        }}>No photos</div>
+                      )}
+                      <div style={{
+                        position: "absolute", top: 6, right: 6, background: theme.accent, color: "#fff",
+                        fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, letterSpacing: "0.05em",
+                      }}>{g.itemCount} {g.itemCount === 1 ? "PHOTO" : "PHOTOS"}</div>
+                    </div>
+                    <div style={{ padding: "8px 10px" }}>
+                      <div style={{ fontSize: 12, color: theme.text, fontWeight: 700 }}>{unitName(g)}</div>
+                      {g.serial && (
+                        <div style={{ fontSize: 10, color: theme.textDim, marginTop: 2, fontFamily: "'JetBrains Mono', monospace" }}>
+                          S/N {g.serial}
+                        </div>
+                      )}
+                      {(g.hours || g.system) && (
+                        <div style={{ fontSize: 10, color: theme.warning, marginTop: 2 }}>
+                          {[g.system, g.hours && `${g.hours} hrs`].filter(Boolean).join(" · ")}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── UNIT DETAIL ── */}
+        {view === "library" && mediaMode === "units" && groupDetail && (
+          <UnitDetail
+            unit={groupDetail}
+            brands={brands}
+            selectStyle={selectStyle}
+            isDesktop={isDesktop}
+            openAdd={openAdd}
+            setUnitLocal={setUnitLocal}
+            commitUnit={commitUnit}
+            setMemberRole={setMemberRole}
+            setUnitCover={setUnitCover}
+            removeFromUnit={removeFromUnit}
+            openAssignPicker={openAssignPicker}
+            onDelete={deleteUnit}
+            onOpenImage={(url) => setLightbox({ imageUrl: url })}
+          />
         )}
       </div>
 
@@ -599,19 +907,48 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
                 </div>
               </div>
 
+              {/* Unit assignment — bundle this photo into a forklift unit */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
+                <Field label="Unit">
+                  <select
+                    value={editing.group_id}
+                    onChange={(e) => updateEditing("group_id", e.target.value)}
+                    style={selectStyle}
+                  >
+                    <option value="">— None —</option>
+                    {unitOptions.map((u) => (
+                      <option key={u.id} value={u.id}>{unitName(u)}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Role in Unit">
+                  <select
+                    value={editing.role}
+                    onChange={(e) => updateEditing("role", e.target.value)}
+                    style={selectStyle}
+                    disabled={!editing.group_id}
+                  >
+                    <option value="">--</option>
+                    {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                  </select>
+                </Field>
+              </div>
+
               {editing.kind === "forklift" && (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   <Field label="Brand">
-                    <select value={editing.brand} onChange={(e) => { updateEditing("brand", e.target.value); updateEditing("model", ""); }} style={selectStyle}>
-                      <option value="">--</option>
-                      {Object.keys(BRANDS).map((b) => <option key={b} value={b}>{b}</option>)}
-                    </select>
+                    <SelectWithAdd
+                      value={editing.brand} style={selectStyle} options={Object.keys(brands)}
+                      onChange={(v) => { updateEditing("brand", v); updateEditing("model", ""); }}
+                      onAdd={() => openAdd({ type: "brand", onComplete: (v) => { updateEditing("brand", v); updateEditing("model", ""); } })}
+                    />
                   </Field>
                   <Field label="Model">
-                    <select value={editing.model} onChange={(e) => updateEditing("model", e.target.value)} style={selectStyle} disabled={!editing.brand}>
-                      <option value="">--</option>
-                      {(BRANDS[editing.brand] || []).map((m) => <option key={m} value={m}>{m}</option>)}
-                    </select>
+                    <SelectWithAdd
+                      value={editing.model} style={selectStyle} options={brands[editing.brand] || []} disabled={!editing.brand}
+                      onChange={(v) => updateEditing("model", v)}
+                      onAdd={editing.brand ? () => openAdd({ type: "model", brand: editing.brand, onComplete: (v) => updateEditing("model", v) }) : null}
+                    />
                   </Field>
                   <Field label="System">
                     <select value={editing.system} onChange={(e) => updateEditing("system", e.target.value)} style={selectStyle}>
@@ -723,6 +1060,75 @@ export default function MediaTagger({ isDesktop = false, isUltrawide = false }) 
         </div>
       )}
 
+      {/* Add brand/model modal */}
+      {addValue && (
+        <AddValueModal
+          addValue={addValue}
+          onCancel={() => setAddValue(null)}
+          onSubmit={submitAddValue}
+        />
+      )}
+
+      {/* Assign existing photos to a unit */}
+      {assignPicker && (
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setAssignPicker(null); }}
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)",
+            display: "flex", justifyContent: "center", alignItems: isDesktop ? "center" : "stretch",
+            padding: isDesktop ? 24 : 0, zIndex: 60,
+          }}
+        >
+          <div style={{
+            background: theme.bg, width: "100%", maxWidth: isDesktop ? 720 : 540,
+            maxHeight: isDesktop ? "calc(100vh - 48px)" : "100%",
+            display: "flex", flexDirection: "column",
+            border: `1px solid ${theme.border}`, borderRadius: isDesktop ? 12 : 0, overflow: "hidden",
+          }}>
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "12px 16px", borderBottom: `1px solid ${theme.border}`, background: theme.bgCard,
+            }}>
+              <div style={{
+                fontSize: 10, color: theme.textMuted, letterSpacing: "0.15em",
+                textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace",
+              }}>Add Photos to Unit</div>
+              <button onClick={() => setAssignPicker(null)} style={{
+                background: "none", border: "none", color: theme.textDim, fontSize: 20, cursor: "pointer", lineHeight: 1,
+              }}>✕</button>
+            </div>
+            <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
+              {assignPicker.length === 0 ? (
+                <div style={{ textAlign: "center", padding: 40, color: theme.textMuted, fontSize: 12 }}>
+                  No ungrouped photos available. Upload some first, then add them here.
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 8 }}>
+                  {assignPicker.map((it) => (
+                    <div
+                      key={it.id}
+                      onClick={() => assignToUnit(it.id)}
+                      title="Add to unit"
+                      style={{
+                        background: theme.bgCard, border: `1px solid ${theme.border}`,
+                        borderRadius: 8, overflow: "hidden", cursor: "pointer",
+                      }}
+                    >
+                      <div style={{ aspectRatio: "4/3", background: "#000" }}>
+                        <img src={it.thumbUrl} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      </div>
+                      <div style={{ padding: "4px 6px", fontSize: 10, color: theme.textDim }}>
+                        {it.brand ? `${it.brand}${it.model ? ` · ${it.model}` : ""}` : it.originalName}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <div style={{
         padding: "10px 20px", borderTop: `1px solid ${theme.border}`,
@@ -756,4 +1162,256 @@ function kindColor(kind, theme) {
   if (kind === "tool") return "#22c55e"; // success green
   if (kind === "reference") return "#a855f7"; // purple
   return "#64748b"; // slate for "other"
+}
+
+// Human label for a unit: its label, else brand · model, else a short id.
+function unitName(u) {
+  if (u.label) return u.label;
+  const bm = [u.brand, u.model].filter(Boolean).join(" · ");
+  return bm || `Unit ${String(u.id).slice(0, 6)}`;
+}
+
+// A <select> with a trailing "+ Add…" option that triggers onAdd.
+function SelectWithAdd({ value, onChange, options, style, disabled, onAdd, placeholder = "--", addLabel = "+ Add…" }) {
+  return (
+    <select
+      value={value}
+      disabled={disabled}
+      onChange={(e) => {
+        if (e.target.value === "__add__") { e.target.value = value; onAdd?.(); return; }
+        onChange(e.target.value);
+      }}
+      style={style}
+    >
+      <option value="">{placeholder}</option>
+      {options.map((o) => <option key={o} value={o}>{o}</option>)}
+      {onAdd && <option value="__add__">{addLabel}</option>}
+    </select>
+  );
+}
+
+// Small inline modal for adding a custom brand or model.
+function AddValueModal({ addValue, onCancel, onSubmit }) {
+  const [text, setText] = useState("");
+  const inputRef = useRef(null);
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  const title = addValue.type === "brand" ? "Add Brand" : `Add Model — ${addValue.brand}`;
+  const placeholder = addValue.type === "brand" ? "e.g. EPJ" : "e.g. WP3000";
+
+  return (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+      style={{
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)",
+        display: "flex", alignItems: "center", justifyContent: "center", zIndex: 80, padding: 20,
+      }}
+    >
+      <div style={{
+        background: theme.bg, width: "100%", maxWidth: 360,
+        border: `1px solid ${theme.border}`, borderRadius: 12, overflow: "hidden",
+      }}>
+        <div style={{
+          padding: "12px 16px", borderBottom: `1px solid ${theme.border}`, background: theme.bgCard,
+          fontSize: 10, color: theme.textMuted, letterSpacing: "0.15em",
+          textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace",
+        }}>{title}</div>
+        <div style={{ padding: 16 }}>
+          <input
+            ref={inputRef}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") onSubmit(text); if (e.key === "Escape") onCancel(); }}
+            placeholder={placeholder}
+            style={{
+              width: "100%", background: theme.bgInput, border: `1px solid ${theme.border}`,
+              borderRadius: 6, padding: "10px 12px", color: theme.text, fontSize: 14,
+              outline: "none", fontFamily: "inherit", boxSizing: "border-box",
+            }}
+          />
+          <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+            <button onClick={onCancel} style={{
+              flex: 1, padding: 11, borderRadius: 8, background: theme.bgCard,
+              border: `1px solid ${theme.border}`, color: theme.text, fontWeight: 700, fontSize: 13, cursor: "pointer",
+            }}>Cancel</button>
+            <button onClick={() => onSubmit(text)} disabled={!text.trim()} style={{
+              flex: 2, padding: 11, borderRadius: 8,
+              background: text.trim() ? theme.accent : theme.textMuted,
+              border: "none", color: "#fff", fontWeight: 700, fontSize: 13,
+              cursor: text.trim() ? "pointer" : "not-allowed",
+            }}>Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Unit detail screen: editable metadata + member photos grouped by role.
+function UnitDetail({
+  unit, brands, selectStyle, isDesktop, openAdd,
+  setUnitLocal, commitUnit, setMemberRole, setUnitCover, removeFromUnit,
+  openAssignPicker, onDelete, onOpenImage,
+}) {
+  const items = unit.items || [];
+  return (
+    <div>
+      {/* Metadata */}
+      <div style={{
+        background: theme.bgCard, border: `1px solid ${theme.border}`,
+        borderRadius: 12, padding: 14, marginBottom: 16,
+      }}>
+        <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "1fr 1fr 1fr" : "1fr 1fr", gap: 8 }}>
+          <div style={{ gridColumn: isDesktop ? "1 / span 3" : "1 / span 2" }}>
+            <Field label="Unit Label">
+              <input
+                value={unit.label}
+                onChange={(e) => setUnitLocal("label", e.target.value)}
+                onBlur={() => commitUnit("label")}
+                placeholder='e.g. "Toyota 8FGCU25 — #4471"'
+                style={selectStyle}
+              />
+            </Field>
+          </div>
+          <Field label="Brand">
+            <SelectWithAdd
+              value={unit.brand} style={selectStyle} options={Object.keys(brands)}
+              onChange={(v) => { setUnitLocal("brand", v); setUnitLocal("model", ""); commitUnit("brand"); commitUnit("model"); }}
+              onAdd={() => openAdd({ type: "brand", onComplete: (v) => { setUnitLocal("brand", v); setUnitLocal("model", ""); commitUnit("brand"); commitUnit("model"); } })}
+            />
+          </Field>
+          <Field label="Model">
+            <SelectWithAdd
+              value={unit.model} style={selectStyle} options={brands[unit.brand] || []} disabled={!unit.brand}
+              onChange={(v) => { setUnitLocal("model", v); commitUnit("model"); }}
+              onAdd={unit.brand ? () => openAdd({ type: "model", brand: unit.brand, onComplete: (v) => { setUnitLocal("model", v); commitUnit("model"); } }) : null}
+            />
+          </Field>
+          <Field label="System">
+            <select
+              value={unit.system}
+              onChange={(e) => { setUnitLocal("system", e.target.value); commitUnit("system"); }}
+              style={selectStyle}
+            >
+              <option value="">--</option>
+              {SYSTEMS.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </Field>
+          <Field label="Serial (data tag)">
+            <input
+              value={unit.serial}
+              onChange={(e) => setUnitLocal("serial", e.target.value)}
+              onBlur={() => commitUnit("serial")}
+              placeholder="optional"
+              style={{ ...selectStyle, fontFamily: "'JetBrains Mono', monospace" }}
+            />
+          </Field>
+          <Field label="Hours (meter)">
+            <input
+              value={unit.hours}
+              onChange={(e) => setUnitLocal("hours", e.target.value)}
+              onBlur={() => commitUnit("hours")}
+              placeholder="optional"
+              style={selectStyle}
+            />
+          </Field>
+          <div style={{ gridColumn: isDesktop ? "1 / span 3" : "1 / span 2" }}>
+            <Field label="Notes">
+              <input
+                value={unit.notes}
+                onChange={(e) => setUnitLocal("notes", e.target.value)}
+                onBlur={() => commitUnit("notes")}
+                placeholder="condition, what you did, follow-up"
+                style={selectStyle}
+              />
+            </Field>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          <button onClick={openAssignPicker} style={{
+            flex: 1, padding: 11, borderRadius: 8, background: theme.accent,
+            border: "none", color: "#fff", fontWeight: 700, fontSize: 12, cursor: "pointer",
+          }}>+ Add Photos</button>
+          <button onClick={onDelete} style={{
+            padding: "11px 14px", borderRadius: 8, background: "transparent",
+            border: `1px solid ${theme.danger}`, color: theme.danger, fontWeight: 700, fontSize: 12, cursor: "pointer",
+          }}>Delete Unit</button>
+        </div>
+      </div>
+
+      {/* Members */}
+      {items.length === 0 ? (
+        <div style={{
+          textAlign: "center", padding: "40px 20px", color: theme.textMuted,
+          border: `1px dashed ${theme.border}`, borderRadius: 12, fontSize: 12,
+        }}>
+          No photos in this unit yet. Tap “+ Add Photos” to pull in the data tag, hour meter, and master shot.
+        </div>
+      ) : (
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: isDesktop ? "repeat(auto-fill, minmax(200px, 1fr))" : "1fr 1fr",
+          gap: isDesktop ? 14 : 10,
+        }}>
+          {items.map((it) => {
+            const isCover = unit.coverMediaId === it.id;
+            return (
+              <div key={it.id} style={{
+                background: theme.bgCard, border: `1px solid ${isCover ? theme.accent : theme.border}`,
+                borderRadius: 10, overflow: "hidden",
+              }}>
+                <div
+                  onClick={() => onOpenImage(it.imageUrl)}
+                  style={{ position: "relative", aspectRatio: "4/3", background: "#000", cursor: "zoom-in" }}
+                >
+                  <img src={it.thumbUrl} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  {it.role && (
+                    <div style={{
+                      position: "absolute", top: 6, left: 6, background: theme.accent, color: "#fff",
+                      fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4,
+                      letterSpacing: "0.05em", textTransform: "uppercase",
+                    }}>{roleLabel(it.role)}</div>
+                  )}
+                  {isCover && (
+                    <div style={{
+                      position: "absolute", top: 6, right: 6, background: theme.warning, color: "#000",
+                      fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, letterSpacing: "0.05em",
+                    }}>COVER</div>
+                  )}
+                </div>
+                <div style={{ padding: "8px 10px" }}>
+                  <select
+                    value={it.role || ""}
+                    onChange={(e) => setMemberRole(it.id, e.target.value)}
+                    style={{ ...selectStyle, fontSize: 12, padding: "6px 8px" }}
+                  >
+                    <option value="">— Role —</option>
+                    {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                  </select>
+                  <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                    <button
+                      onClick={() => setUnitCover(it.id)}
+                      disabled={isCover}
+                      style={{
+                        flex: 1, background: "none", border: `1px solid ${theme.border}`,
+                        color: isCover ? theme.textMuted : theme.textDim, fontSize: 10,
+                        borderRadius: 4, padding: "4px 6px", cursor: isCover ? "default" : "pointer",
+                      }}
+                    >{isCover ? "Cover" : "Set cover"}</button>
+                    <button
+                      onClick={() => removeFromUnit(it.id)}
+                      style={{
+                        flex: 1, background: "none", border: `1px solid ${theme.border}`,
+                        color: theme.textMuted, fontSize: 10, borderRadius: 4, padding: "4px 6px", cursor: "pointer",
+                      }}
+                    >Remove</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
